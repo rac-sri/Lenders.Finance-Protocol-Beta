@@ -1,1 +1,5 @@
 # Protocol
+
+## Architecture
+
+![](protocol.png)
