@@ -1,31 +1,35 @@
 {
-  "name": "lenderscontract",
-  "version": "1.0.0",
-  "description": "Smart Contracts for lenders protocol",
-  "main": "truffle-config.js",
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "test": "mocha"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Insureably/Protocol.git"
-  },
-  "keywords": [
-    "undercollataral",
-    "loans",
-    "defi",
-    "solidity"
-  ],
-  "author": "Rachit Anand Srivastava",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Insureably/Protocol/issues"
-  },
-  "homepage": "https://github.com/Insureably/Protocol#readme",
-  "dependencies": {
-    "@openzeppelin/contracts": "^4.1.0"
-  }
+    "name": "lenderscontract",
+    "version": "1.0.0",
+    "description": "Smart Contracts for lenders protocol",
+    "main": "truffle-config.js",
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "test": "mocha",
+        "prettier": "npm prettier --write .",
+        "lint": "npm prettier --check && solhint 'contracts/**/*.sol"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Insureably/Protocol.git"
+    },
+    "keywords": [
+        "undercollataral",
+        "loans",
+        "defi",
+        "solidity"
+    ],
+    "author": "Rachit Anand Srivastava",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Insureably/Protocol/issues"
+    },
+    "homepage": "https://github.com/Insureably/Protocol#readme",
+    "dependencies": {
+        "@openzeppelin/contracts": "^4.1.0",
+        "@truffle/hdwallet-provider": "^1.4.0",
+        "prettier": "^2.3.0"
+    }
 }
