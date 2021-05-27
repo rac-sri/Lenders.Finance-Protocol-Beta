@@ -30,9 +30,11 @@
   "homepage": "https://github.com/Insureably/Protocol#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^4.1.0",
+    "@openzeppelin/contracts-upgradeable": "^4.1.0",
     "@truffle/hdwallet-provider": "^1.4.0"
   },
   "devDependencies": {
+    "@openzeppelin/truffle-upgrades": "^1.7.0",
     "generate-changelog": "^1.8.0",
     "prettier": "^2.3.0",
     "prettier-plugin-solidity": "^1.0.0-beta.10"

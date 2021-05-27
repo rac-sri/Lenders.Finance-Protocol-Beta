@@ -1,47 +1,41 @@
 pragma solidity >0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract Wrapper is
-    ERC20,
-    ERC20Detailed,
-    ERC20Mintable,
-    ERC20Burnable,
-    ERC20Pausable
-{
+contract Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+
+    bytes32 public constant MUTLISIGADMIN = keccak256("MULTISIG");
 
     struct BorrowerDetails {
         uint256 time;
         uint256 amount;
     }
-    // to store the address of
-    IERC20 public immutable Coin;
-    address immutable factoryContract;
+
+    // to store the address of token
+    IERC20 public Coin;
+    address factoryContract;
     uint256 totalLiquidity;
     uint256 usedLiquidity;
     address[] balanceSupplyCallPending;
     mapping(address => uint256) liquidityMapping;
     mapping(address => BorrowerDetails) borrowersMapping;
 
-    constructor(
-        address _tokenAddress,
-        bytes32[] name,
-        bytes32[] symbol,
-        uint256 precision,
+    function initialize(
+        IERC20 _tokenAddress,
+        string calldata name,
+        string calldata symbol,
         address admin
-    ) public ERC20Detailed(name, symbol, precision) {
+    ) public initializer {
+        __ERC20_init(name, symbol);
         Coin = _tokenAddress;
         factoryContract = msg.sender;
-        addMinter(msg.sender);
+        _setupRole(MUTLISIGADMIN, admin);
     }
 
     /* the LenderLoan contract takes permission to spend a particular ERC20 on behalf of the liquidity provider. 
@@ -49,11 +43,11 @@ contract Wrapper is
     After sending this contract. The total liquidity is increased.  
     */
 
-    function increaseSupply(uint256 amount) public onlyMinter {
-        liquidity += amount;
+    function increaseSupply(uint256 amount) public {
+        liquidityMapping[msg.sender] += amount;
     }
 
-    function decreaseSupply(uint256 amount, address sender) public onlyMinter {
+    function decreaseSupply(uint256 amount, address sender) public {
         uint256 availaibleSupply = getAvailaibleSupply();
 
         require(
@@ -73,16 +67,16 @@ contract Wrapper is
         address borrower,
         uint256 numberOfDays,
         uint256 amount
-    ) public onlyMinter {
-        require(amount <= getAvailaibleAmount(), "not enough liquidity");
+    ) public {
+        require(amount <= getAvailaibleSupply(), "not enough liquidity");
         usedLiquidity.add(amount);
-        addBorrower(borrower, now + numberOfDays * 1 days, amount);
+        addBorrower(borrower, block.timestamp + numberOfDays * 1 days, amount);
         _mint(borrower, amount);
     }
 
     function paybackLoan(uint256 amount) public {
         require(
-            amount <= borrowsersMapping[borrower],
+            amount <= borrowersMapping[msg.sender].amount,
             "you weren't given this much liquidity. Please repay your own loan only"
         );
 
@@ -97,16 +91,18 @@ contract Wrapper is
         uint256 callerProfit = 0;
         address iterator;
 
-        for (int256 x = 0; x < balanceSupplyCallPending.length; x++) {
+        for (uint256 x = 0; x < balanceSupplyCallPending.length; x++) {
             iterator = balanceSupplyCallPending[x];
             BorrowerDetails storage borrower = borrowersMapping[iterator];
-            if (borrower.time > now) {
+            if (borrower.time > block.timestamp) {
                 callerProfit += borrower.amount;
-                burnFrom(iterator, borrower.amount);
+                _burn(iterator, borrower.amount);
                 balanceSupplyCallPending[x] = balanceSupplyCallPending[
                     balanceSupplyCallPending.length - 1
                 ];
-                balanceSupplyCallPending.length--;
+                delete balanceSupplyCallPending[
+                    balanceSupplyCallPending.length - 1
+                ];
                 x--;
             }
         }
@@ -116,11 +112,11 @@ contract Wrapper is
     }
 
     function addBorrower(
-        uint256 recipient,
+        address recipient,
         uint256 time,
         uint256 amount
     ) internal {
-        borrowersMapping[recipient] += BorrowerDetails(time, amount);
+        borrowersMapping[recipient] = BorrowerDetails(time, amount);
         balanceSupplyCallPending.push(recipient);
     }
 
@@ -141,16 +137,8 @@ contract Wrapper is
         address recipient,
         uint256 amount
     ) public virtual override returns (bool) {
-        _transfer(sender, recipient, amount);
-
-        uint256 currentAllowance = _allowances[sender][_msgSender()];
-        require(
-            currentAllowance >= amount,
-            "ERC20: transfer amount exceeds allowance"
-        );
-        _approve(sender, _msgSender(), currentAllowance - amount);
+        super.transferFrom(sender, recipient, amount);
         addBorrower(recipient, borrowersMapping[msg.sender].time, amount);
-
         return true;
     }
 }
