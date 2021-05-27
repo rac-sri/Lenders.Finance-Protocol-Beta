@@ -19,10 +19,10 @@ contract ERC20Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
 
     // to store the address of token
     IERC20 public Coin;
-    address factoryContract;
-    uint256 totalLiquidity;
-    uint256 usedLiquidity;
-    address[] balanceSupplyCallPending;
+    address private factoryContract;
+    uint256 private totalLiquidity;
+    uint256 private usedLiquidity;
+    address[] private balanceSupplyCallPending;
     mapping(address => uint256) liquidityMapping;
     mapping(address => BorrowerDetails) borrowersMapping;
 
@@ -43,8 +43,12 @@ contract ERC20Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
     After sending this contract. The total liquidity is increased.  
     */
 
-    function increaseSupply(uint256 amount) public {
-        liquidityMapping[msg.sender] += amount;
+    function increaseSupply(uint256 amount, address supplier)
+        public
+        onlyRole(MULTISIGADMIN)
+    {
+        liquidityMapping[supplier] += amount;
+        totalLiquidity += amount;
     }
 
     function decreaseSupply(uint256 amount, address sender) public {
@@ -80,11 +84,17 @@ contract ERC20Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
             "you weren't given this much liquidity. Please repay your own loan only"
         );
 
-        borrowersMapping[msg.sender].amount;
+        borrowersMapping[msg.sender].amount -= amount;
+        usedLiquidity.sub(amount);
+        _burn(msg.sender, amount);
     }
 
-    function getAvailaibleSupply() public returns (uint256) {
+    function getAvailaibleSupply() public view returns (uint256) {
         return totalLiquidity.sub(usedLiquidity);
+    }
+
+    function getUsedLiquidity() public view returns (uint256) {
+        return usedLiquidity;
     }
 
     function balanceSupply() public {
@@ -140,5 +150,21 @@ contract ERC20Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
         super.transferFrom(sender, recipient, amount);
         addBorrower(recipient, borrowersMapping[msg.sender].time, amount);
         return true;
+    }
+
+    function getLiquidityByAddress(address lp) public view returns (uint256) {
+        return liquidityMapping[lp];
+    }
+
+    function getTotalLiquidity() public view returns (uint256) {
+        return totalLiquidity;
+    }
+
+    function getBorrowerDetails(address borrower)
+        public
+        view
+        returns (BorrowerDetails memory)
+    {
+        return borrowersMapping[borrower];
     }
 }
