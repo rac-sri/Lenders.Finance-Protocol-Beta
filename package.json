@@ -7,10 +7,12 @@
     "test": "test"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "truffle test",
     "prettier": "prettier --write 'contracts/**/*.sol'",
     "lint": "npm prettier --check && solhint 'contracts/**/*.sol",
-    "log": "changelog generate"
+    "log": "changelog generate",
+    "compile": "truffle compile",
+    "migrate": " truffle migrate"
   },
   "repository": {
     "type": "git",
@@ -31,10 +33,14 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.1.0",
     "@openzeppelin/contracts-upgradeable": "^4.1.0",
-    "@truffle/hdwallet-provider": "^1.4.0"
+    "@truffle/hdwallet-provider": "^1.4.0",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "truffle": "^5.3.7"
   },
   "devDependencies": {
     "@openzeppelin/truffle-upgrades": "^1.7.0",
+    "dotenv": "^10.0.0",
     "generate-changelog": "^1.8.0",
     "prettier": "^2.3.0",
     "prettier-plugin-solidity": "^1.0.0-beta.10"

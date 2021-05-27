@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
+contract ERC20Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    bytes32 public constant MUTLISIGADMIN = keccak256("MULTISIG");
+    bytes32 public constant MULTISIGADMIN = keccak256("MULTISIG");
 
     struct BorrowerDetails {
         uint256 time;
@@ -35,7 +35,7 @@ contract Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
         __ERC20_init(name, symbol);
         Coin = _tokenAddress;
         factoryContract = msg.sender;
-        _setupRole(MUTLISIGADMIN, admin);
+        _setupRole(MULTISIGADMIN, admin);
     }
 
     /* the LenderLoan contract takes permission to spend a particular ERC20 on behalf of the liquidity provider. 
