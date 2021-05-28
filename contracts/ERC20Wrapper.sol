@@ -51,7 +51,10 @@ contract ERC20Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
         totalLiquidity += amount;
     }
 
-    function decreaseSupply(uint256 amount, address sender) public {
+    function decreaseSupply(uint256 amount, address sender)
+        public
+        onlyRole(MULTISIGADMIN)
+    {
         uint256 availaibleSupply = getAvailaibleSupply();
 
         require(
