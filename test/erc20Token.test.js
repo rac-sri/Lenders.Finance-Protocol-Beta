@@ -9,6 +9,7 @@ chai.use(chaiAsPromised);
 contract("ERC20 token", (accounts) => {
   let dai;
   let erc20;
+  let timestamp;
 
   describe("Contract deployment", async () => {
     before(async () => {
@@ -42,15 +43,62 @@ contract("ERC20 token", (accounts) => {
       assert.equal(borrower.amount, 1000);
 
       const usedLiq = await erc20.getUsedLiquidity();
-      assert(usedLiq, 1000);
+      assert.equal(usedLiq.toNumber(), 1000);
     });
 
     it("account 2 payback 300 dai of loans", async () => {
       await erc20.paybackLoan(300, { from: accounts[2] });
       const balance = await erc20.balanceOf(accounts[2]);
       assert.equal(balance, 700);
-      // const availaibleLiquidity = await erc20.getAvailaibleSupply();
-      // assert.equal(availaibleLiquidity, 4300);
+      const availaibleLiquidity = await erc20.getAvailaibleSupply();
+      assert.equal(availaibleLiquidity, 4300);
+    });
+
+    it("timestamp increased by 1 day", async () => {
+      let id = 0;
+      const oldBlockNUmber = await web3.eth.getBlockNumber();
+      const { timestamp: oldTimeStamp } = await web3.eth.getBlock(
+        oldBlockNUmber
+      );
+      await web3.currentProvider.send(
+        {
+          jsonrpc: "2.0",
+          method: "evm_increaseTime",
+          params: [90000],
+          id,
+        },
+        () => {}
+      ); // > 86400 for 1 day
+
+      await web3.currentProvider.send(
+        {
+          jsonrpc: "2.0",
+          method: "evm_mine",
+          id: id + 1,
+        },
+        () => {}
+      );
+
+      const newBlockNumber = await web3.eth.getBlockNumber();
+      const { timestamp: newTimestamp } = await web3.eth.getBlock(
+        newBlockNumber
+      );
+      assert.isTrue(newTimestamp - oldTimeStamp > 86400);
+      timestamp = newTimestamp;
+    });
+
+    it("balanceSupply() function after 1 day time", async () => {
+      let borrower = await erc20.getBorrowerDetails(accounts[2]);
+      assert.equal(borrower.amount, 700);
+      assert.isTrue(borrower.time < timestamp);
+
+      await erc20.balanceSupply({ from: accounts[4] });
+
+      borrower = await erc20.getBorrowerDetails(accounts[2]);
+      assert.equal(borrower.amount, 0);
+
+      const balance = await erc20.balanceOf(accounts[4]);
+      assert(balance, 700);
     });
   });
 });

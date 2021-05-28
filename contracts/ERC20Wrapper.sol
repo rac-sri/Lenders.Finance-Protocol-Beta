@@ -73,10 +73,12 @@ contract ERC20Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
         uint256 amount
     ) public {
         require(amount <= getAvailaibleSupply(), "not enough liquidity");
-        usedLiquidity.add(amount);
+        usedLiquidity = usedLiquidity.add(amount);
         addBorrower(borrower, block.timestamp + numberOfDays * 1 days, amount);
         _mint(borrower, amount);
     }
+
+    event LiquidityChange(address sender, uint256 amount);
 
     function paybackLoan(uint256 amount) public {
         require(
@@ -85,7 +87,8 @@ contract ERC20Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
         );
 
         borrowersMapping[msg.sender].amount -= amount;
-        usedLiquidity.sub(amount);
+        emit LiquidityChange(msg.sender, amount);
+        usedLiquidity = usedLiquidity.sub(amount, "amount issue");
         _burn(msg.sender, amount);
     }
 
@@ -101,10 +104,10 @@ contract ERC20Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
         uint256 callerProfit = 0;
         address iterator;
 
-        for (uint256 x = 0; x < balanceSupplyCallPending.length; x++) {
+        for (uint256 x = 0; x < balanceSupplyCallPending.length; ) {
             iterator = balanceSupplyCallPending[x];
             BorrowerDetails storage borrower = borrowersMapping[iterator];
-            if (borrower.time > block.timestamp) {
+            if (iterator != address(0) && borrower.time < block.timestamp) {
                 callerProfit += borrower.amount;
                 _burn(iterator, borrower.amount);
                 balanceSupplyCallPending[x] = balanceSupplyCallPending[
@@ -113,7 +116,10 @@ contract ERC20Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
                 delete balanceSupplyCallPending[
                     balanceSupplyCallPending.length - 1
                 ];
-                x--;
+                borrower.amount = 0;
+                borrower.time = 0;
+            } else {
+                x++;
             }
         }
 
@@ -166,5 +172,13 @@ contract ERC20Wrapper is ERC20Upgradeable, AccessControlUpgradeable {
         returns (BorrowerDetails memory)
     {
         return borrowersMapping[borrower];
+    }
+
+    function getBalanceSupplyCallPending()
+        public
+        view
+        returns (address[] memory)
+    {
+        return balanceSupplyCallPending;
     }
 }

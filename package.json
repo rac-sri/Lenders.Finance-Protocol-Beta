@@ -1,6 +1,6 @@
 {
   "name": "lenderscontract",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Smart Contracts for lenders protocol",
   "main": "truffle-config.js",
   "directories": {
@@ -8,6 +8,8 @@
   },
   "scripts": {
     "test": "truffle test",
+    "test:debug": "truffle test --debug",
+    "debug:tx": "truffle debug",
     "prettier": "prettier --write 'contracts/**/*.sol'",
     "lint": "npm prettier --check && solhint 'contracts/**/*.sol",
     "log": "changelog generate",
