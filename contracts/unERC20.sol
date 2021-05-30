@@ -127,6 +127,8 @@ contract UNERC20 is ERC20Upgradeable, AccessControlUpgradeable {
         }
 
         uint256 reward = callerProfit.div(100);
+
+        // Needs fixing. Cannot send the liquidity to the caller. Need to incentice the calling of this function using our own Token ( prefereably not same as the governance )
         Coin.safeTransfer(msg.sender, reward);
     }
 
