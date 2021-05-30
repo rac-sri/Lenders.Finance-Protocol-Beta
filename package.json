@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "truffle test",
+    "coverage": "./scripts/coverage",
     "test:debug": "truffle test --debug",
     "debug:tx": "truffle debug",
     "prettier": "prettier --write 'contracts/**/*.sol'",
