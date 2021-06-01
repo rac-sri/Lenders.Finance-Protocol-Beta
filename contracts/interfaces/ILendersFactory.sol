@@ -14,7 +14,11 @@ interface ILendersFactory {
         string calldata symbol
     ) external;
 
-    function issueLoan() external;
+    function paybackLoan(IERC20 token, uint256 amount) external;
 
-    function paybackLoan() external;
+    function issueLoan(
+        IERC20 token,
+        uint256 numberOfDays,
+        uint256 amount
+    ) external;
 }

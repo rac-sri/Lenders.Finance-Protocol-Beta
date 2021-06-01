@@ -36,6 +36,7 @@ contract UNERC20 is ERC20Upgradeable, AccessControlUpgradeable {
         Coin = _tokenAddress;
         factoryContract = msg.sender;
         _setupRole(MULTISIGADMIN, admin);
+        _setupRole(MULTISIGADMIN, msg.sender);
     }
 
     /* the LenderLoan contract takes permission to spend a particular ERC20 on behalf of the liquidity provider. 
@@ -74,7 +75,7 @@ contract UNERC20 is ERC20Upgradeable, AccessControlUpgradeable {
         address borrower,
         uint256 numberOfDays,
         uint256 amount
-    ) public {
+    ) public onlyRole(MULTISIGADMIN) {
         require(amount <= getAvailaibleSupply(), "not enough liquidity");
         usedLiquidity = usedLiquidity.add(amount);
         addBorrower(borrower, block.timestamp + numberOfDays * 1 days, amount);
@@ -83,7 +84,7 @@ contract UNERC20 is ERC20Upgradeable, AccessControlUpgradeable {
 
     event LiquidityChange(address sender, uint256 amount);
 
-    function paybackLoan(uint256 amount) public {
+    function paybackLoan(uint256 amount) public onlyRole(MULTISIGADMIN) {
         require(
             amount <= borrowersMapping[msg.sender].amount,
             "you weren't given this much liquidity. Please repay your own loan only"
