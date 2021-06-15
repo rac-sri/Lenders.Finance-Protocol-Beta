@@ -2,7 +2,7 @@ const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 const { expect, assert } = require("chai");
 const Dai = artifacts.require("Dai");
-const Wrapper = artifacts.require("unERC20");
+const Wrapper = artifacts.require("UNERC20");
 
 chai.use(chaiAsPromised);
 
@@ -47,7 +47,7 @@ contract("ERC20 token", (accounts) => {
     });
 
     it("account 2 payback 300 dai of loans", async () => {
-      await erc20.paybackLoan(300, { from: accounts[2] });
+      await erc20.paybackLoan(300, accounts[2], { from: accounts[0] });
       const balance = await erc20.balanceOf(accounts[2]);
       assert.equal(balance, 700);
       const availaibleLiquidity = await erc20.getAvailaibleSupply();

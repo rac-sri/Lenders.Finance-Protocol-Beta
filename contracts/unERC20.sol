@@ -5,8 +5,17 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract UNERC20 is ERC20Upgradeable, AccessControlUpgradeable {
+// refer https://forum.openzeppelin.com/t/uups-proxies-tutorial-solidity-javascript/7786
+
+contract UNERC20 is
+    ERC20Upgradeable,
+    AccessControlUpgradeable,
+    UUPSUpgradeable,
+    OwnableUpgradeable
+{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -38,6 +47,8 @@ contract UNERC20 is ERC20Upgradeable, AccessControlUpgradeable {
         _setupRole(MULTISIGADMIN, admin);
         _setupRole(MULTISIGADMIN, msg.sender);
     }
+
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 
     /* the LenderLoan contract takes permission to spend a particular ERC20 on behalf of the liquidity provider. 
     It sends those token to this smart contract. 
@@ -84,16 +95,19 @@ contract UNERC20 is ERC20Upgradeable, AccessControlUpgradeable {
 
     event LiquidityChange(address sender, uint256 amount);
 
-    function paybackLoan(uint256 amount) public onlyRole(MULTISIGADMIN) {
+    function paybackLoan(uint256 amount, address account)
+        public
+        onlyRole(MULTISIGADMIN)
+    {
         require(
-            amount <= borrowersMapping[msg.sender].amount,
+            amount <= borrowersMapping[account].amount,
             "you weren't given this much liquidity. Please repay your own loan only"
         );
 
-        borrowersMapping[msg.sender].amount -= amount;
-        emit LiquidityChange(msg.sender, amount);
+        borrowersMapping[account].amount -= amount;
+        emit LiquidityChange(account, amount);
         usedLiquidity = usedLiquidity.sub(amount, "amount issue");
-        _burn(msg.sender, amount);
+        _burn(account, amount);
     }
 
     function getAvailaibleSupply() public view returns (uint256) {

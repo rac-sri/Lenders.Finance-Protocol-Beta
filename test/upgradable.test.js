@@ -3,8 +3,8 @@ const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 const { expect, assert } = require("chai");
 const Dai = artifacts.require("Dai");
-const Wrapper = artifacts.require("unERC20");
-const Wrapper2 = artifacts.require("unERC20");
+const Wrapper = artifacts.require("UNERC20");
+const Wrapper2 = artifacts.require("UNERC20");
 
 chai.use(chaiAsPromised);
 

@@ -33,10 +33,12 @@ contract LendersFactory is ILendersFactory {
         string calldata name,
         string calldata symbol
     ) external override {
-        address proxyContractToken = Clones.clone(implementation);
+        address payable proxyContractToken =
+            payable(Clones.clone(implementation));
         UnERC20Proxy initializing = UnERC20Proxy(proxyContractToken);
         address unERC20Address = Clones.clone(tokenImplementation);
         initializing.upgradeTo(unERC20Address);
+
         UNERC20 unERC20 = UNERC20(unERC20Address);
         unERC20.initialize(token, name, symbol, admin);
         proxyMapping[token] = proxyContractToken;
@@ -64,7 +66,7 @@ contract LendersFactory is ILendersFactory {
     }
 
     function getContractAddress(IERC20 token) public view returns (UNERC20) {
-        address tokenAddress = proxyMapping[token];
+        address payable tokenAddress = payable(proxyMapping[token]);
         UnERC20Proxy proxyContract = UnERC20Proxy(tokenAddress);
         UNERC20 liquidityContract = UNERC20(proxyContract.getImplementation());
         return liquidityContract;
@@ -83,7 +85,7 @@ contract LendersFactory is ILendersFactory {
 
     function paybackLoan(IERC20 token, uint256 amount) external override {
         UNERC20 liquidityContract = getContractAddress(token);
-        liquidityContract.paybackLoan(amount);
+        liquidityContract.paybackLoan(amount, msg.sender);
     }
 
     function payInterest(uint256 amount) public payable {
