@@ -17,30 +17,21 @@ contract("Factory Contract", (accounts) => {
   describe("create new liquidity contract and provide liquidity", async () => {
     before(async () => {
       dai = await Dai.new(10000, { from: accounts[0] });
-      unERC20ProxyContract = await unERC20Proxy.new(
-        dai.address,
-        web3.utils.asciiToHex(""),
-        {
-          from: accounts[0],
-        }
-      );
 
-      console.log(
-        "implementaion",
-        await unERC20ProxyContract.getImplementation()
-      );
+      unERC20ProxyContract = await unERC20Proxy.new(dai.address, "0x", {
+        from: accounts[0],
+      });
+
       urERC20contract = await unERC20.new();
       await urERC20contract.initialize(dai.address, "Dai", "Dai", accounts[0]);
-      // await unERC20ProxyContract.upgradeTo(urERC20contract.address, {
-      //   from: accounts[0],
-      // });
+
       factory = await Factory.new(unERC20ProxyContract.address, {
         from: accounts[0],
       });
     });
 
-    it("dsfdsf", async () => {
-      await factory.createLiquidityContract();
+    it("implementation contract is correct", async () => {
+      assert.equal(dai.address, await unERC20ProxyContract.getImplementation());
     });
   });
 });
