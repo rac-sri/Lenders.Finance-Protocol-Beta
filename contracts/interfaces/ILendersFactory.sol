@@ -8,8 +8,7 @@ interface ILendersFactory {
     function withdrawLiquidity(uint256 amount, IERC20 token) external;
 
     function createLiquidityContract(
-        address tokenImplementation,
-        IERC20 token,
+        address token,
         string calldata name,
         string calldata symbol
     ) external;

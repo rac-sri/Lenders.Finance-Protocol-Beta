@@ -18,20 +18,73 @@ contract("Factory Contract", (accounts) => {
     before(async () => {
       dai = await Dai.new(10000, { from: accounts[0] });
 
-      unERC20ProxyContract = await unERC20Proxy.new(dai.address, "0x", {
-        from: accounts[0],
-      });
-
       urERC20contract = await unERC20.new();
+
       await urERC20contract.initialize(dai.address, "Dai", "Dai", accounts[0]);
 
-      factory = await Factory.new(unERC20ProxyContract.address, {
-        from: accounts[0],
-      });
+      unERC20ProxyContract = await unERC20Proxy.new(
+        urERC20contract.address,
+        "0x",
+        {
+          from: accounts[0],
+        }
+      );
+
+      factory = await Factory.new(
+        unERC20ProxyContract.address,
+        urERC20contract.address,
+        {
+          from: accounts[0],
+        }
+      );
     });
 
     it("implementation contract is correct", async () => {
-      assert.equal(dai.address, await unERC20ProxyContract.getImplementation());
+      assert.equal(
+        urERC20contract.address,
+        await unERC20ProxyContract.getImplementation()
+      );
+    });
+  });
+
+  describe("Liquidity Contract", async () => {
+    let daiTokenWrapper;
+    let daiImplementationAddress;
+
+    it("create a new token wrapper contract", async () => {
+      await factory.createLiquidityContract(dai.address, "Dai", "Dai");
+
+      const daiAddress = await factory.returnProxyContract(dai.address);
+
+      const unerc20implementation = new web3.eth.Contract(
+        unERC20Proxy.abi,
+        daiAddress
+      );
+
+      daiImplementationAddress = await unerc20implementation.methods
+        .getImplementation()
+        .call();
+
+      daiTokenWrapper = new web3.eth.Contract(
+        unERC20.abi,
+        daiImplementationAddress
+      );
+
+      assert.equal(await daiTokenWrapper.methods.name().call(), "Dai");
+    });
+
+    it("adding liquidity", async () => {
+      // approve dai spending
+      await dai.approve(factory.address, 5000);
+      assert.equal(await dai.allowance(accounts[0], factory.address), 5000);
+
+      await factory.addLiquidity(4000, dai.address);
+      assert.equal(await dai.balanceOf(daiImplementationAddress), 4000);
+
+      assert.equal(
+        await daiTokenWrapper.methods.getTotalLiquidity().call(),
+        4000
+      );
     });
   });
 });

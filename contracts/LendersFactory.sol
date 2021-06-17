@@ -14,34 +14,36 @@ contract LendersFactory is ILendersFactory {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    address implementation;
+    address proxyImplementation;
+    address tokenImplementation;
     address admin;
 
     mapping(IERC20 => address) proxyMapping;
     mapping(address => mapping(uint256 => bool)) interestPaid;
 
-    constructor(address _implementation) {
-        implementation = _implementation;
+    constructor(address _implementation, address _tokenImplementation) {
+        proxyImplementation = _implementation;
+        tokenImplementation = _tokenImplementation;
         admin = msg.sender;
     }
 
     event LiquidityAdded(address sender, IERC20 token, uint256 amount);
 
     function createLiquidityContract(
-        address tokenImplementation,
-        IERC20 token,
+        address token,
         string calldata name,
         string calldata symbol
     ) external override {
         address payable proxyContractToken =
-            payable(Clones.clone(implementation));
+            payable(Clones.clone(proxyImplementation));
         UnERC20Proxy initializing = UnERC20Proxy(proxyContractToken);
         address unERC20Address = Clones.clone(tokenImplementation);
-        initializing.upgradeTo(unERC20Address);
-
         UNERC20 unERC20 = UNERC20(unERC20Address);
         unERC20.initialize(token, name, symbol, admin);
-        proxyMapping[token] = proxyContractToken;
+
+        initializing.upgradeTo(unERC20Address);
+
+        proxyMapping[IERC20(token)] = proxyContractToken;
     }
 
     function addLiquidity(uint256 amount, IERC20 token) external override {
@@ -50,7 +52,20 @@ contract LendersFactory is ILendersFactory {
             "Token Contract Doesn't exist"
         );
         // The token needs to have approval first
-        token.transferFrom(msg.sender, proxyMapping[token], amount);
+        address implementation = getContractAddress(token);
+        token.transferFrom(msg.sender, implementation, amount);
+        UNERC20 implementationContract = UNERC20(implementation);
+        implementationContract.increaseSupply(amount, msg.sender);
+
+        //    // gas inefficient
+        //     implementation.call(
+        //         abi.encodeWithSignature(
+        //             "increaseSupply(uint256,address)",
+        //             amount,
+        //             msg.sender
+        //         )
+        //     );
+
         emit LiquidityAdded(msg.sender, token, amount);
     }
 
@@ -60,15 +75,15 @@ contract LendersFactory is ILendersFactory {
             "Token Contract Doesn't exist"
         );
 
-        UNERC20 liquidityContract = getContractAddress(token);
+        UNERC20 liquidityContract = UNERC20(getContractAddress(token));
 
         liquidityContract.decreaseSupply(amount, msg.sender);
     }
 
-    function getContractAddress(IERC20 token) public view returns (UNERC20) {
+    function getContractAddress(IERC20 token) public view returns (address) {
         address payable tokenAddress = payable(proxyMapping[token]);
         UnERC20Proxy proxyContract = UnERC20Proxy(tokenAddress);
-        UNERC20 liquidityContract = UNERC20(proxyContract.getImplementation());
+        address liquidityContract = (proxyContract.getImplementation());
         return liquidityContract;
     }
 
@@ -77,14 +92,14 @@ contract LendersFactory is ILendersFactory {
         uint256 numberOfDays,
         uint256 amount
     ) external override {
-        UNERC20 liquidityContract = getContractAddress(token);
+        UNERC20 liquidityContract = UNERC20(getContractAddress(token));
         require(interestPaid[msg.sender][amount] == true, "Interest Not Paid");
         liquidityContract.getLoan(msg.sender, numberOfDays, amount);
         interestPaid[msg.sender][amount] = false;
     }
 
     function paybackLoan(IERC20 token, uint256 amount) external override {
-        UNERC20 liquidityContract = getContractAddress(token);
+        UNERC20 liquidityContract = UNERC20(getContractAddress(token));
         liquidityContract.paybackLoan(amount, msg.sender);
     }
 
@@ -108,5 +123,13 @@ contract LendersFactory is ILendersFactory {
     function payInterest() public view returns (uint256) {
         // think of an algo based on liquidity available vs loan taken
         return 10;
+    }
+
+    function returnProxyContract(IERC20 tokenAddress)
+        public
+        view
+        returns (address)
+    {
+        return proxyMapping[tokenAddress];
     }
 }

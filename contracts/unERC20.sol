@@ -28,6 +28,7 @@ contract UNERC20 is
 
     // to store the address of token
     IERC20 public Coin;
+    address public tokenAddress;
     address private factoryContract;
     uint256 private totalLiquidity;
     uint256 private usedLiquidity;
@@ -36,13 +37,14 @@ contract UNERC20 is
     mapping(address => BorrowerDetails) borrowersMapping;
 
     function initialize(
-        IERC20 _tokenAddress,
+        address _tokenAddress,
         string calldata name,
         string calldata symbol,
         address admin
     ) public initializer {
         __ERC20_init(name, symbol);
-        Coin = _tokenAddress;
+        tokenAddress = _tokenAddress;
+        Coin = IERC20(_tokenAddress);
         factoryContract = msg.sender;
         _setupRole(MULTISIGADMIN, admin);
         _setupRole(MULTISIGADMIN, msg.sender);
@@ -200,5 +202,9 @@ contract UNERC20 is
         returns (address[] memory)
     {
         return balanceSupplyCallPending;
+    }
+
+    function getTokenAddress() public view returns (IERC20) {
+        return Coin;
     }
 }
