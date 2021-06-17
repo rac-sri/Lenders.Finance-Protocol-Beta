@@ -9,7 +9,7 @@
   "scripts": {
     "pipeline": "bash ./scripts/run_tests.sh",
     "test": "truffle test",
-    "coverage": "./scripts/coverage",
+    "coverage": "npx truffle run coverage",
     "test:debug": "truffle test --debug",
     "debug:tx": "truffle debug",
     "prettier": "prettier --write 'contracts/**/*.sol'",

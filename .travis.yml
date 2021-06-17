@@ -9,3 +9,5 @@ before_script:
 
 script:
   - npm run pipeline
+  - npx truffle run coverage
+  - cat coverage/lcov.info | npx coveralls
