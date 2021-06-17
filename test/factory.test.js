@@ -86,5 +86,7 @@ contract("Factory Contract", (accounts) => {
         4000
       );
     });
+
+    it("account[2] issues a loan", async () => {});
   });
 });

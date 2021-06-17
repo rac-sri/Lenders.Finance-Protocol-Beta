@@ -1289,6 +1289,16 @@
       "address": "0x02152Ca96E8c91AA4303A75Ae1142560010BD615",
       "txHash": "0x11c09ebb47f3ee4a06e6f50086e3033d3e4becdbb21e60da64a093fb258cf49c",
       "kind": "transparent"
+    },
+    {
+      "address": "0xc178AcAE229a82eAf0119a64885c0a2552c20060",
+      "txHash": "0xd0fcd03145a15286f5a018e8fe65e91b816327fb8db3365b81004e856fe659a7",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x5f8A9d55C5e1B742ae89E230a505bC58eb5A2081",
+      "txHash": "0x8804c6b07c33b0150d6385df7603659252317212edc755c397902d404e36b483",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -3358,7 +3368,7 @@
           {
             "contract": "AccessControlUpgradeable",
             "label": "_roles",
-            "type": "t_mapping(t_bytes32,t_struct(RoleData)1136_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)1186_storage)",
             "src": "../@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:73"
           },
           {
@@ -3394,7 +3404,7 @@
           {
             "contract": "UNERC20",
             "label": "Coin",
-            "type": "t_contract(IERC20)4529",
+            "type": "t_contract(IERC20)4579",
             "src": "unERC20.sol:30"
           },
           {
@@ -3436,12 +3446,12 @@
           {
             "contract": "UNERC20",
             "label": "borrowersMapping",
-            "type": "t_mapping(t_address,t_struct(BorrowerDetails)547_storage)",
+            "type": "t_mapping(t_address,t_struct(BorrowerDetails)597_storage)",
             "src": "unERC20.sol:37"
           }
         ],
         "types": {
-          "t_contract(IERC20)4529": {
+          "t_contract(IERC20)4579": {
             "label": "contract IERC20"
           },
           "t_address": {
@@ -3456,10 +3466,10 @@
           "t_mapping(t_address,t_uint256)": {
             "label": "mapping(address => uint256)"
           },
-          "t_mapping(t_address,t_struct(BorrowerDetails)547_storage)": {
+          "t_mapping(t_address,t_struct(BorrowerDetails)597_storage)": {
             "label": "mapping(address => struct UNERC20.BorrowerDetails)"
           },
-          "t_struct(BorrowerDetails)547_storage": {
+          "t_struct(BorrowerDetails)597_storage": {
             "label": "struct UNERC20.BorrowerDetails",
             "members": [
               {
@@ -3478,13 +3488,13 @@
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
           },
-          "t_mapping(t_bytes32,t_struct(RoleData)1136_storage)": {
+          "t_mapping(t_bytes32,t_struct(RoleData)1186_storage)": {
             "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_struct(RoleData)1136_storage": {
+          "t_struct(RoleData)1186_storage": {
             "label": "struct AccessControlUpgradeable.RoleData",
             "members": [
               {

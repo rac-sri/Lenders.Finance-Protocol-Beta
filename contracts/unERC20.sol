@@ -41,7 +41,7 @@ contract UNERC20 is
         string calldata name,
         string calldata symbol,
         address admin
-    ) public initializer {
+    ) external initializer {
         __ERC20_init(name, symbol);
         tokenAddress = _tokenAddress;
         Coin = IERC20(_tokenAddress);
@@ -58,7 +58,7 @@ contract UNERC20 is
     */
 
     function increaseSupply(uint256 amount, address supplier)
-        public
+        external
         onlyRole(MULTISIGADMIN)
     {
         liquidityMapping[supplier] += amount;
@@ -66,7 +66,7 @@ contract UNERC20 is
     }
 
     function decreaseSupply(uint256 amount, address sender)
-        public
+        external
         onlyRole(MULTISIGADMIN)
     {
         uint256 availaibleSupply = getAvailaibleSupply();
@@ -88,7 +88,7 @@ contract UNERC20 is
         address borrower,
         uint256 numberOfDays,
         uint256 amount
-    ) public onlyRole(MULTISIGADMIN) {
+    ) external onlyRole(MULTISIGADMIN) {
         require(amount <= getAvailaibleSupply(), "not enough liquidity");
         usedLiquidity = usedLiquidity.add(amount);
         addBorrower(borrower, block.timestamp + numberOfDays * 1 days, amount);
@@ -98,7 +98,7 @@ contract UNERC20 is
     event LiquidityChange(address sender, uint256 amount);
 
     function paybackLoan(uint256 amount, address account)
-        public
+        external
         onlyRole(MULTISIGADMIN)
     {
         require(
@@ -120,7 +120,7 @@ contract UNERC20 is
         return usedLiquidity;
     }
 
-    function balanceSupply() public {
+    function balanceSupply() external {
         uint256 callerProfit = 0;
         address iterator;
 

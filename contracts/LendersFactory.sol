@@ -1,7 +1,7 @@
 pragma solidity >0.8.0;
 
 // create interfaces for both these contract.
-import "./unERC20.sol";
+import "./interfaces/IunERC20.sol";
 import "./UnERC20Proxy.sol";
 
 import "./interfaces/ILendersFactory.sol";
@@ -38,7 +38,7 @@ contract LendersFactory is ILendersFactory {
             payable(Clones.clone(proxyImplementation));
         UnERC20Proxy initializing = UnERC20Proxy(proxyContractToken);
         address unERC20Address = Clones.clone(tokenImplementation);
-        UNERC20 unERC20 = UNERC20(unERC20Address);
+        IUNERC20 unERC20 = IUNERC20(unERC20Address);
         unERC20.initialize(token, name, symbol, admin);
 
         initializing.upgradeTo(unERC20Address);
@@ -54,7 +54,7 @@ contract LendersFactory is ILendersFactory {
         // The token needs to have approval first
         address implementation = getContractAddress(token);
         token.transferFrom(msg.sender, implementation, amount);
-        UNERC20 implementationContract = UNERC20(implementation);
+        IUNERC20 implementationContract = IUNERC20(implementation);
         implementationContract.increaseSupply(amount, msg.sender);
 
         //    // gas inefficient
@@ -75,7 +75,7 @@ contract LendersFactory is ILendersFactory {
             "Token Contract Doesn't exist"
         );
 
-        UNERC20 liquidityContract = UNERC20(getContractAddress(token));
+        IUNERC20 liquidityContract = IUNERC20(getContractAddress(token));
 
         liquidityContract.decreaseSupply(amount, msg.sender);
     }
@@ -92,14 +92,14 @@ contract LendersFactory is ILendersFactory {
         uint256 numberOfDays,
         uint256 amount
     ) external override {
-        UNERC20 liquidityContract = UNERC20(getContractAddress(token));
+        IUNERC20 liquidityContract = IUNERC20(getContractAddress(token));
         require(interestPaid[msg.sender][amount] == true, "Interest Not Paid");
         liquidityContract.getLoan(msg.sender, numberOfDays, amount);
         interestPaid[msg.sender][amount] = false;
     }
 
     function paybackLoan(IERC20 token, uint256 amount) external override {
-        UNERC20 liquidityContract = UNERC20(getContractAddress(token));
+        IUNERC20 liquidityContract = IUNERC20(getContractAddress(token));
         liquidityContract.paybackLoan(amount, msg.sender);
     }
 
