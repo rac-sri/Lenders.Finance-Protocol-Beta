@@ -42,7 +42,7 @@ module.exports = {
       excludeContracts: ["Migrations"],
     },
   },
-
+  plugins: ["solidity-coverage"],
   // Configure your compilers
   compilers: {
     solc: {
