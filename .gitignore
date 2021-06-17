@@ -3,3 +3,4 @@ build
 .env
 .openzeppelin
 config.json
+coverage
