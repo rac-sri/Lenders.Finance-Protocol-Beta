@@ -7,6 +7,7 @@
     "test": "test"
   },
   "scripts": {
+    "ganache-cli": "bash ./scripts/run_tests.sh",
     "test": "truffle test",
     "coverage": "./scripts/coverage",
     "test:debug": "truffle test --debug",
