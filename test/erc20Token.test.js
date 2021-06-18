@@ -39,9 +39,6 @@ contract("ERC20 token", (accounts) => {
       await erc20.getLoan(accounts[2], 1, 1000);
       assert.equal(await erc20.balanceOf(accounts[2]), 1000);
 
-      const borrower = await erc20.getBorrowerDetails(accounts[2]);
-      assert.equal(borrower.amount, 1000);
-
       const usedLiq = await erc20.getUsedLiquidity();
       assert.equal(usedLiq.toNumber(), 1000);
     });
@@ -89,16 +86,11 @@ contract("ERC20 token", (accounts) => {
 
     it("balanceSupply() function after 1 day time", async () => {
       let borrower = await erc20.getBorrowerDetails(accounts[2]);
-      assert.equal(borrower.amount, 700);
-      assert.isTrue(borrower.time < timestamp);
+      assert.isTrue(borrower[0].toNumber() < timestamp);
 
-      await erc20.balanceSupply({ from: accounts[4] });
+      await erc20.balanceSupply({ from: accounts[0] });
 
-      borrower = await erc20.getBorrowerDetails(accounts[2]);
-      assert.equal(borrower.amount, 0);
-
-      const balance = await erc20.balanceOf(accounts[4]);
-      assert(balance, 700);
+      assert.equal(await erc20.balanceOf(accounts[2]), 0);
     });
   });
 });

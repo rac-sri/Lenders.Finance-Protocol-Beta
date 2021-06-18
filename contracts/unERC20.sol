@@ -1,12 +1,13 @@
 pragma solidity >0.8.0;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 // refer https://forum.openzeppelin.com/t/uups-proxies-tutorial-solidity-javascript/7786
 
@@ -16,25 +17,22 @@ contract UNERC20 is
     UUPSUpgradeable,
     OwnableUpgradeable
 {
-    using SafeMath for uint256;
-    using SafeERC20 for IERC20;
+    using SafeMathUpgradeable for uint256;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     bytes32 public constant MULTISIGADMIN = keccak256("MULTISIG");
 
-    struct BorrowerDetails {
-        uint256 time;
-        uint256 amount;
-    }
-
     // to store the address of token
-    IERC20 public Coin;
+    IERC20Upgradeable public Coin;
     address public tokenAddress;
     address private factoryContract;
     uint256 private totalLiquidity;
     uint256 private usedLiquidity;
     address[] private balanceSupplyCallPending;
     mapping(address => uint256) liquidityMapping;
-    mapping(address => BorrowerDetails) borrowersMapping;
+    mapping(address => uint256) borrowersMapping; // time period track
+
+    event LiquidityChange(address sender, uint256 amount);
 
     function initialize(
         address _tokenAddress,
@@ -44,7 +42,7 @@ contract UNERC20 is
     ) external initializer {
         __ERC20_init(name, symbol);
         tokenAddress = _tokenAddress;
-        Coin = IERC20(_tokenAddress);
+        Coin = IERC20Upgradeable(_tokenAddress);
         factoryContract = msg.sender;
         _setupRole(MULTISIGADMIN, admin);
         _setupRole(MULTISIGADMIN, msg.sender);
@@ -90,23 +88,24 @@ contract UNERC20 is
         uint256 amount
     ) external onlyRole(MULTISIGADMIN) {
         require(amount <= getAvailaibleSupply(), "not enough liquidity");
+        require(
+            balanceOf(borrower) == 0,
+            "Loan issued once already. Please repay that, then try again"
+        );
         usedLiquidity = usedLiquidity.add(amount);
         addBorrower(borrower, block.timestamp + numberOfDays * 1 days, amount);
         _mint(borrower, amount);
     }
-
-    event LiquidityChange(address sender, uint256 amount);
 
     function paybackLoan(uint256 amount, address account)
         external
         onlyRole(MULTISIGADMIN)
     {
         require(
-            amount <= borrowersMapping[account].amount,
+            amount <= balanceOf(account),
             "you weren't given this much liquidity. Please repay your own loan only"
         );
 
-        borrowersMapping[account].amount -= amount;
         emit LiquidityChange(account, amount);
         usedLiquidity = usedLiquidity.sub(amount, "amount issue");
         _burn(account, amount);
@@ -120,33 +119,36 @@ contract UNERC20 is
         return usedLiquidity;
     }
 
-    function balanceSupply() external {
+    function balanceSupply()
+        external
+        onlyRole(MULTISIGADMIN)
+        returns (uint256)
+    {
         uint256 callerProfit = 0;
         address iterator;
 
         for (uint256 x = 0; x < balanceSupplyCallPending.length; ) {
             iterator = balanceSupplyCallPending[x];
-            BorrowerDetails storage borrower = borrowersMapping[iterator];
-            if (iterator != address(0) && borrower.time < block.timestamp) {
-                callerProfit += borrower.amount;
-                _burn(iterator, borrower.amount);
+            uint256 borrowerTime = borrowersMapping[iterator];
+            uint256 balance = balanceOf(iterator);
+            if (iterator != address(0) && borrowerTime < block.timestamp) {
+                callerProfit += balance;
+                _burn(iterator, balance);
                 balanceSupplyCallPending[x] = balanceSupplyCallPending[
                     balanceSupplyCallPending.length - 1
                 ];
                 delete balanceSupplyCallPending[
                     balanceSupplyCallPending.length - 1
                 ];
-                borrower.amount = 0;
-                borrower.time = 0;
+                borrowersMapping[iterator] = 0;
             } else {
                 x++;
             }
         }
 
-        uint256 reward = callerProfit.div(100);
+        uint256 reward = callerProfit.div(10);
 
-        // Needs fixing. Cannot send the liquidity to the caller. Need to incentice the calling of this function using our own Token ( prefereably not same as the governance )
-        Coin.safeTransfer(msg.sender, reward);
+        return reward;
     }
 
     function addBorrower(
@@ -154,7 +156,7 @@ contract UNERC20 is
         uint256 time,
         uint256 amount
     ) internal {
-        borrowersMapping[recipient] = BorrowerDetails(time, amount);
+        borrowersMapping[recipient] = time;
         balanceSupplyCallPending.push(recipient);
     }
 
@@ -166,7 +168,7 @@ contract UNERC20 is
         returns (bool)
     {
         _transfer(_msgSender(), recipient, amount);
-        addBorrower(recipient, borrowersMapping[msg.sender].time, amount);
+        addBorrower(recipient, borrowersMapping[msg.sender], amount);
         return true;
     }
 
@@ -176,7 +178,7 @@ contract UNERC20 is
         uint256 amount
     ) public virtual override returns (bool) {
         super.transferFrom(sender, recipient, amount);
-        addBorrower(recipient, borrowersMapping[msg.sender].time, amount);
+        addBorrower(recipient, borrowersMapping[msg.sender], amount);
         return true;
     }
 
@@ -191,9 +193,9 @@ contract UNERC20 is
     function getBorrowerDetails(address borrower)
         public
         view
-        returns (BorrowerDetails memory)
+        returns (uint256, uint256)
     {
-        return borrowersMapping[borrower];
+        return (borrowersMapping[borrower], balanceOf(borrower));
     }
 
     function getBalanceSupplyCallPending()
@@ -204,7 +206,7 @@ contract UNERC20 is
         return balanceSupplyCallPending;
     }
 
-    function getTokenAddress() public view returns (IERC20) {
+    function getTokenAddress() public view returns (IERC20Upgradeable) {
         return Coin;
     }
 }

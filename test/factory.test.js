@@ -106,5 +106,21 @@ contract("Factory Contract", (accounts) => {
         1500
       );
     });
+
+    it("accounts[2] paybacks the loan", async () => {
+      await factory.paybackLoan(dai.address, 1000, { from: accounts[2] });
+
+      assert.equal(
+        await daiTokenWrapper.methods.balanceOf(accounts[2]).call(),
+        500
+      );
+    });
+
+    // balanceSupply Test
+    it("balanceSupply() test", async () => {
+      assert(await factory.balanceSupply.call(dai.address), 500);
+    });
+
+    // transfer events test
   });
 });

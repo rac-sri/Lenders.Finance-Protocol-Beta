@@ -103,6 +103,14 @@ contract LendersFactory is ILendersFactory {
         liquidityContract.paybackLoan(amount, msg.sender);
     }
 
+    function balanceSupply(IERC20 token) external returns (uint256) {
+        IUNERC20 liquidityContract = IUNERC20(getContractAddress(token));
+
+        uint256 reward = liquidityContract.balanceSupply();
+        // replace with payment to the caller later on
+        return reward;
+    }
+
     function payInterest(uint256 amount) public payable {
         uint256 interest = calculateInterestAmount(amount);
         require(

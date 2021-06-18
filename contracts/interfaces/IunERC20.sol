@@ -22,5 +22,5 @@ interface IUNERC20 is IERC20 {
 
     function paybackLoan(uint256 amount, address account) external;
 
-    function balanceSupply() external;
+    function balanceSupply() external returns (uint256);
 }
