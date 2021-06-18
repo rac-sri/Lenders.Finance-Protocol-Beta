@@ -4,3 +4,4 @@ build
 .openzeppelin
 config.json
 coverage
+coverage.json

@@ -114,15 +114,15 @@ contract LendersFactory is ILendersFactory {
 
     function calculateInterestAmount(uint256 amount)
         public
-        view
+        pure
         returns (uint256)
     {
-        return payInterest().mul(amount).div(100);
+        return interestPercentage().mul(amount).div(100);
     }
 
-    function payInterest() public view returns (uint256) {
+    function interestPercentage() public pure returns (uint256) {
         // think of an algo based on liquidity available vs loan taken
-        return 10;
+        return 1;
     }
 
     function returnProxyContract(IERC20 tokenAddress)

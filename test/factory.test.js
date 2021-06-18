@@ -87,6 +87,24 @@ contract("Factory Contract", (accounts) => {
       );
     });
 
-    it("account[2] issues a loan", async () => {});
+    it("Interest Calculation Functions Working", async () => {
+      assert.equal((await factory.interestPercentage()).toNumber(), 1);
+      assert.equal(await factory.calculateInterestAmount(1500), 15);
+    });
+
+    it("account[2] issues a loan", async () => {
+      await dai.transfer(accounts[2], 2000);
+
+      assert.equal(await dai.balanceOf(accounts[2]), 2000);
+
+      await factory.payInterest(1500, { value: 15, from: accounts[2] });
+
+      await factory.issueLoan(dai.address, 1, 1500, { from: accounts[2] });
+
+      assert.equal(
+        await daiTokenWrapper.methods.balanceOf(accounts[2]).call(),
+        1500
+      );
+    });
   });
 });
