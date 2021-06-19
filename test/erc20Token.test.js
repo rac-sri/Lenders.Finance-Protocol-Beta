@@ -3,6 +3,8 @@ const chaiAsPromised = require("chai-as-promised");
 const { expect, assert } = require("chai");
 const Dai = artifacts.require("Dai");
 const Wrapper = artifacts.require("UNERC20");
+const SmartContract = artifacts.require("Store");
+const exceptions = require("./exceptions");
 
 chai.use(chaiAsPromised);
 
@@ -10,6 +12,7 @@ contract("ERC20 token", (accounts) => {
   let dai;
   let erc20;
   let timestamp;
+  let store;
 
   describe("Contract deployment", async () => {
     before(async () => {
@@ -18,6 +21,7 @@ contract("ERC20 token", (accounts) => {
         from: accounts[0],
       });
       erc20.initialize(dai.address, "Dai", "dai", accounts[0]);
+      store = await SmartContract.new();
     });
 
     it("account 0 should have MULTISIG role", async () => {
@@ -91,6 +95,40 @@ contract("ERC20 token", (accounts) => {
       await erc20.balanceSupply({ from: accounts[0] });
 
       assert.equal(await erc20.balanceOf(accounts[2]), 0);
+    });
+
+    it("transfer() function", async () => {
+      await erc20.getLoan(accounts[5], 1, 1000);
+      assert.equal(await erc20.balanceOf(accounts[5]), 1000);
+
+      await erc20.transfer(store.address, 600, { from: accounts[5] });
+      assert.equal(await erc20.balanceOf(store.address), 600);
+      assert.equal(await erc20.balanceOf(accounts[5]), 400);
+    });
+
+    it("transferFrom() function", async () => {
+      await erc20.getLoan(accounts[6], 1, 1000);
+      assert.equal(await erc20.balanceOf(accounts[6]), 1000);
+
+      await erc20.approve(accounts[7], 500, { from: accounts[6] });
+      await erc20.transferFrom(accounts[6], store.address, 500, {
+        from: accounts[7],
+      });
+
+      assert.equal(await erc20.balanceOf(store.address), 1100);
+      assert.equal(await erc20.balanceOf(accounts[6]), 500);
+    });
+
+    it("transfer() should not work for account[5] as it has already issued loan", async () => {
+      await exceptions.LiquidityAlreadyTaken(
+        erc20.getLoan(accounts[5], 1, 1000)
+      );
+    });
+
+    it(".decreaseSupply()", async () => {
+      await erc20.decreaseSupply(500, accounts[1], { from: accounts[0] });
+      const availaibleLiquidity = await erc20.getTotalLiquidity();
+      assert.equal(availaibleLiquidity, 4500);
     });
   });
 });

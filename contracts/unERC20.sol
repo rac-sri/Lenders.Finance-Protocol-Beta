@@ -31,6 +31,7 @@ contract UNERC20 is
     address[] private balanceSupplyCallPending;
     mapping(address => uint256) liquidityMapping;
     mapping(address => uint256) borrowersMapping; // time period track
+    mapping(address => mapping(address => uint256)) contractInteractions;
 
     event LiquidityChange(address sender, uint256 amount);
 
@@ -78,7 +79,7 @@ contract UNERC20 is
             "not enough liquidity provided by the user"
         );
 
-        totalLiquidity.sub(amount);
+        totalLiquidity = totalLiquidity.sub(amount);
         Coin.safeTransfer(sender, amount);
     }
 
@@ -93,7 +94,7 @@ contract UNERC20 is
             "Loan issued once already. Please repay that, then try again"
         );
         usedLiquidity = usedLiquidity.add(amount);
-        addBorrower(borrower, block.timestamp + numberOfDays * 1 days, amount);
+        addBorrower(borrower, block.timestamp + numberOfDays * 1 days);
         _mint(borrower, amount);
     }
 
@@ -103,7 +104,7 @@ contract UNERC20 is
     {
         require(
             amount <= balanceOf(account),
-            "you weren't given this much liquidity. Please repay your own loan only"
+            "You weren't given this much liquidity. Please repay your own loan only"
         );
 
         emit LiquidityChange(account, amount);
@@ -151,11 +152,7 @@ contract UNERC20 is
         return reward;
     }
 
-    function addBorrower(
-        address recipient,
-        uint256 time,
-        uint256 amount
-    ) internal {
+    function addBorrower(address recipient, uint256 time) internal {
         borrowersMapping[recipient] = time;
         balanceSupplyCallPending.push(recipient);
     }
@@ -167,9 +164,11 @@ contract UNERC20 is
         override
         returns (bool)
     {
-        _transfer(_msgSender(), recipient, amount);
-        addBorrower(recipient, borrowersMapping[msg.sender], amount);
-        return true;
+        if (AddressUpgradeable.isContract(recipient)) {
+            _transfer(_msgSender(), recipient, amount);
+            contractInteractions[msg.sender][recipient] += amount;
+            return true;
+        } else return false;
     }
 
     function transferFrom(
@@ -177,9 +176,11 @@ contract UNERC20 is
         address recipient,
         uint256 amount
     ) public virtual override returns (bool) {
-        super.transferFrom(sender, recipient, amount);
-        addBorrower(recipient, borrowersMapping[msg.sender], amount);
-        return true;
+        if (AddressUpgradeable.isContract(recipient)) {
+            super.transferFrom(sender, recipient, amount);
+            contractInteractions[msg.sender][recipient] += amount;
+            return true;
+        } else return false;
     }
 
     function getLiquidityByAddress(address lp) public view returns (uint256) {
