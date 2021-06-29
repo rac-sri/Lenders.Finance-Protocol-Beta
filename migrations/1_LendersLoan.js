@@ -3,6 +3,7 @@ const config = require("../config.json")
 const { deployProxy } = require("@openzeppelin/truffle-upgrades")
 const UNERC20 = artifacts.require("UNERC20")
 const ProxyContract = artifacts.require("ERC1967Proxy")
+const DataProvider = artifacts.require("DataProvider")
 const { targetERC20, name, symbol, admin } = config
 
 module.exports = async function (deployer) {
@@ -10,9 +11,11 @@ module.exports = async function (deployer) {
     return deployer
       .deploy(ProxyContract, result.address, "0x")
       .then((proxy) => {
-        return deployer
-          .deploy(LendersFactory, proxy.address, result.address)
-          .then((res) => console.log(res.address))
+        return deployer.deploy(DataProvider).then((dp) => {
+          return deployer
+            .deploy(LendersFactory, proxy.address, result.address, dp.address)
+            .then((res) => console.log(res.address))
+        })
       })
   })
 }

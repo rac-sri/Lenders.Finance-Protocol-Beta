@@ -1,13 +1,18 @@
 pragma solidity >0.8.0;
 
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
+import "./interfaces/IDataProvider.sol";
 
-contract DataProvider {
-    constructor() {}
+contract DataProvider is IDataProvider {
+    uint256 public Ymax;
+    uint256 public Ymin;
+
+    mapping(address => mapping(uint256 => bool)) interestPaid;
 
     function getThePrice(address aggregatorAddress)
-        public
+        external
         view
+        override
         returns (int256)
     {
         AggregatorV3Interface priceFeed =
@@ -22,12 +27,20 @@ contract DataProvider {
         return price;
     }
 
-    function calculatePaymentAmount() external {
-        // function calculate interest
-        // calculate security
+    function getInterestPaidStatus(address addr, uint256 amount)
+        external
+        view
+        override
+        returns (bool)
+    {
+        return interestPaid[addr][amount];
     }
 
-    function calculateInterest() internal {}
-
-    function calculateSecurity() internal {}
+    function setInterestPaidStatus(
+        address addr,
+        uint256 amount,
+        bool status
+    ) external override {
+        interestPaid[addr][amount] = status;
+    }
 }

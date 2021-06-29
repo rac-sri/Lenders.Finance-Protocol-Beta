@@ -3,7 +3,7 @@ pragma solidity >0.8.0;
 // create interfaces for both these contract.
 import "./interfaces/IunERC20.sol";
 import "./UnERC20Proxy.sol";
-
+import "./interfaces/IDataProvider.sol";
 import "./interfaces/ILendersFactory.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -16,14 +16,20 @@ contract LendersFactory is ILendersFactory {
 
     address proxyImplementation;
     address tokenImplementation;
+    IDataProvider dataProvider;
+
     address admin;
 
     mapping(IERC20 => address) proxyMapping;
-    mapping(address => mapping(uint256 => bool)) interestPaid;
 
-    constructor(address _implementation, address _tokenImplementation) {
+    constructor(
+        address _implementation,
+        address _tokenImplementation,
+        IDataProvider _dataProvider
+    ) {
         proxyImplementation = _implementation;
         tokenImplementation = _tokenImplementation;
+        dataProvider = _dataProvider;
         admin = msg.sender;
     }
 
@@ -91,9 +97,12 @@ contract LendersFactory is ILendersFactory {
         uint256 amount
     ) external override {
         IUNERC20 liquidityContract = IUNERC20(getContractAddress(token));
-        require(interestPaid[msg.sender][amount] == true, "Interest Not Paid");
+        require(
+            dataProvider.getInterestPaidStatus(msg.sender, amount) == true,
+            "Interest Not Paid"
+        );
         liquidityContract.getLoan(msg.sender, numberOfDays, amount);
-        interestPaid[msg.sender][amount] = false;
+        dataProvider.setInterestPaidStatus(msg.sender, amount, false);
     }
 
     function paybackLoan(IERC20 token, uint256 amount) external override {
@@ -115,7 +124,7 @@ contract LendersFactory is ILendersFactory {
             msg.value == interest,
             "Not the entire interest amount deposited"
         );
-        interestPaid[msg.sender][amount] = true;
+        dataProvider.setInterestPaidStatus(msg.sender, amount, true);
     }
 
     function calculateInterestAmount(uint256 amount)

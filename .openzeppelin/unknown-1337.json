@@ -169,6 +169,16 @@
       "address": "0x87fA1cE1b051c0EacC1ca34702b9Cb8bBdDE7Aae",
       "txHash": "0x2d7eadc1e2c131a57e9027f99ac8cbb9cfb00cc86a8a085677d3da477c237b2f",
       "kind": "transparent"
+    },
+    {
+      "address": "0x5Cb1576Fbd066e5d64659251B70A57Acf0F6Fc8A",
+      "txHash": "0x16e7ea75bbf3155abd611853342cde3ad11a04346773360297b2533a2cc1628c",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xC71f17fb58C7D721392F6568711cA0dAb3ed0f47",
+      "txHash": "0x3569488a97e54c1f16144c031bbdf65298c13932ecbd09bdc064910595ca7d91",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -240,7 +250,7 @@
           {
             "contract": "AccessControlUpgradeable",
             "label": "_roles",
-            "type": "t_mapping(t_bytes32,t_struct(RoleData)1548_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)1666_storage)",
             "src": "../@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:73"
           },
           {
@@ -276,7 +286,7 @@
           {
             "contract": "UNERC20",
             "label": "Coin",
-            "type": "t_contract(IERC20Upgradeable)3169",
+            "type": "t_contract(IERC20Upgradeable)3287",
             "src": "unERC20.sol:26"
           },
           {
@@ -329,7 +339,7 @@
           }
         ],
         "types": {
-          "t_contract(IERC20Upgradeable)3169": {
+          "t_contract(IERC20Upgradeable)3287": {
             "label": "contract IERC20Upgradeable"
           },
           "t_address": {
@@ -353,13 +363,13 @@
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
           },
-          "t_mapping(t_bytes32,t_struct(RoleData)1548_storage)": {
+          "t_mapping(t_bytes32,t_struct(RoleData)1666_storage)": {
             "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_struct(RoleData)1548_storage": {
+          "t_struct(RoleData)1666_storage": {
             "label": "struct AccessControlUpgradeable.RoleData",
             "members": [
               {

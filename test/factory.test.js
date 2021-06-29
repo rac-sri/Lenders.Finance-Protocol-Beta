@@ -5,6 +5,7 @@ const Dai = artifacts.require("Dai");
 const Factory = artifacts.require("LendersFactory");
 const unERC20Proxy = artifacts.require("UnERC20Proxy");
 const unERC20 = artifacts.require("UNERC20");
+const DataProvider = artifacts.require("DataProvider");
 
 chai.use(chaiAsPromised);
 
@@ -30,9 +31,11 @@ contract("Factory Contract", (accounts) => {
         }
       );
 
+      const dataProvider = await DataProvider.new();
       factory = await Factory.new(
         unERC20ProxyContract.address,
         urERC20contract.address,
+        dataProvider.address,
         {
           from: accounts[0],
         }
