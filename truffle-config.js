@@ -6,7 +6,7 @@ module.exports = {
       host: "127.0.0.1", // Localhost (default: none)
       port: 7545, // Custom port
       network_id: "*", // Custom network
-      // gas: 8500000,           // Gas sent with each transaction (default: ~6700000)
+      gas: 6721975, // Gas sent with each transaction (default: ~6700000)
       // gasPrice: 20000000000,  // 20 gwei (in wei) (default: 100 gwei)
       // from: <address>,        // Account to send txs from (default: accounts[0])
       // websockets: true, // Enable EventEmitter interface for web3 (default: false)
@@ -45,10 +45,10 @@ module.exports = {
       // docker: false, // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {
       //   // See the solidity docs for advice about optimization and evmVersion
-      //   optimizer: {
-      //     enabled: false,
-      //     runs: 200,
-      //   },
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
       // },
     },
   },

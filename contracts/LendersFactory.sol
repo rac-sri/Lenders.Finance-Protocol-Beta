@@ -38,10 +38,10 @@ contract LendersFactory is ILendersFactory {
             payable(Clones.clone(proxyImplementation));
         UnERC20Proxy initializing = UnERC20Proxy(proxyContractToken);
         address unERC20Address = Clones.clone(tokenImplementation);
-        IUNERC20 unERC20 = IUNERC20(unERC20Address);
-        unERC20.initialize(token, name, symbol, admin);
-
         initializing.upgradeTo(unERC20Address);
+
+        IUNERC20 unERC20 = IUNERC20(proxyContractToken);
+        unERC20.initialize(token, name, symbol, admin);
 
         proxyMapping[IERC20(token)] = proxyContractToken;
     }
@@ -82,9 +82,7 @@ contract LendersFactory is ILendersFactory {
 
     function getContractAddress(IERC20 token) public view returns (address) {
         address payable tokenAddress = payable(proxyMapping[token]);
-        UnERC20Proxy proxyContract = UnERC20Proxy(tokenAddress);
-        address liquidityContract = (proxyContract.getImplementation());
-        return liquidityContract;
+        return tokenAddress;
     }
 
     function issueLoan(

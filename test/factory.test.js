@@ -49,28 +49,17 @@ contract("Factory Contract", (accounts) => {
 
   describe("Liquidity Contract", async () => {
     let daiTokenWrapper;
-    let daiImplementationAddress;
+    let daiAddress;
 
     it("create a new token wrapper contract", async () => {
       await factory.createLiquidityContract(dai.address, "Dai", "Dai");
 
-      const daiAddress = await factory.returnProxyContract(dai.address);
+      daiAddress = await factory.returnProxyContract(dai.address);
+      console.log(factory.address, daiAddress);
 
-      const unerc20implementation = new web3.eth.Contract(
-        unERC20Proxy.abi,
-        daiAddress
-      );
-
-      daiImplementationAddress = await unerc20implementation.methods
-        .getImplementation()
-        .call();
-
-      daiTokenWrapper = new web3.eth.Contract(
-        unERC20.abi,
-        daiImplementationAddress
-      );
-
-      assert.equal(await daiTokenWrapper.methods.name().call(), "Dai");
+      daiTokenWrapper = new web3.eth.Contract(unERC20.abi, daiAddress);
+      const name = await daiTokenWrapper.methods.name().call();
+      assert.equal(name, "Dai");
     });
 
     it("adding liquidity", async () => {
@@ -79,7 +68,7 @@ contract("Factory Contract", (accounts) => {
       assert.equal(await dai.allowance(accounts[0], factory.address), 5000);
 
       await factory.addLiquidity(4000, dai.address);
-      assert.equal(await dai.balanceOf(daiImplementationAddress), 4000);
+      assert.equal(await dai.balanceOf(daiAddress), 4000);
 
       assert.equal(
         await daiTokenWrapper.methods.getTotalLiquidity().call(),
@@ -120,7 +109,6 @@ contract("Factory Contract", (accounts) => {
     it("balanceSupply() test", async () => {
       assert(await factory.balanceSupply.call(dai.address), 500);
     });
-
     // transfer events test
   });
 });
