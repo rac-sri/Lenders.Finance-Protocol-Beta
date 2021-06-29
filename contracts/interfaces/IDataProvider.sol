@@ -1,5 +1,7 @@
 pragma solidity >0.8.0;
 
+import "./IunERC20.sol";
+
 interface IDataProvider {
     function getThePrice(address) external returns (uint256);
 
@@ -14,7 +16,7 @@ interface IDataProvider {
         bool status
     ) external;
 
-    function getValuesForInterestCalculation()
+    function getValuesForInterestCalculation(IUNERC20)
         external
         returns (
             uint256,

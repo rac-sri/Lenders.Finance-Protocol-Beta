@@ -2,7 +2,7 @@ pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IUNERC20 is IERC20 {
+interface IUNERC20 {
     function initialize(
         address _tokenAddress,
         string calldata name,
@@ -23,4 +23,8 @@ interface IUNERC20 is IERC20 {
     function paybackLoan(uint256 amount, address account) external;
 
     function balanceSupply() external returns (uint256);
+
+    function getUsedLiquidity() external view returns (uint256);
+
+    function getTotalLiquidity() external view returns (uint256);
 }

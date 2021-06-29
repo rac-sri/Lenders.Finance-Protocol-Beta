@@ -2,6 +2,7 @@ pragma solidity >0.8.0;
 
 import "./libraries/Math.sol";
 import "./interfaces/IDataProvider.sol";
+import "./interfaces/IunERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract InterestRateStatergy is Math {
@@ -16,33 +17,33 @@ contract InterestRateStatergy is Math {
         securityPercentage = _securityPercentage;
     }
 
-    function calculatePaymentAmount(uint256 amount, uint256 numberOfDays)
-        external
-        returns (uint256, uint256)
-    {
-        uint256 interest = calculateInterest(amount);
+    function calculatePaymentAmount(
+        IUNERC20 tokenProxy,
+        uint256 amount,
+        uint256 numberOfDays
+    ) external returns (uint256, uint256) {
+        uint256 interest = calculateInterest(amount, tokenProxy);
         uint256 security = calculateSecurity(amount, numberOfDays);
-
         return (interest, security);
     }
 
     // need to redesign to accomodate decimals
-    function calculateInterest(uint256 amount) internal returns (uint256) {
+    function calculateInterest(uint256 amount, IUNERC20 tokenProxy)
+        internal
+        returns (uint256)
+    {
         // y = ymax - sqrt(ymax^2 - (x^2 * (ymax -ymin)^2 - ymin^2 + 2ymaxymin))
         (uint256 ymax, uint256 ymin, uint256 B, uint256 T) =
-            dataProvider.getValuesForInterestCalculation();
+            dataProvider.getValuesForInterestCalculation(tokenProxy);
 
         uint256 x = B.add(amount).div(B.add(amount).add(T));
         uint256 sqFactor = x.mul(x).mul((ymax - ymin).mul(ymax - ymin));
-
-        uint256 y =
-            ymax.sub(
-                Math.sqrt(
-                    ymax.mul(ymax).sub(sqFactor).sub(ymin.mul(ymin)).add(
-                        (ymax).mul(ymin).mul(2)
-                    )
-                )
+        uint256 sqrtValue =
+            ymax.mul(ymax).sub(sqFactor).sub(ymin.mul(ymin)).add(
+                (ymax).mul(ymin).mul(2)
             );
+
+        uint256 y = ymax.sub(Math.sqrt(sqrtValue));
 
         return y;
     }

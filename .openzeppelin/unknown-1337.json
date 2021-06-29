@@ -179,6 +179,36 @@
       "address": "0xC71f17fb58C7D721392F6568711cA0dAb3ed0f47",
       "txHash": "0x3569488a97e54c1f16144c031bbdf65298c13932ecbd09bdc064910595ca7d91",
       "kind": "transparent"
+    },
+    {
+      "address": "0x6a6a3FbD72f787A18b2d3d17d353156fEad2737c",
+      "txHash": "0x628928bfa276b0c61744a89b155bf23479657b6a954c6a8ba8949d7a8508b4ba",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x05a0887e9722a243BCC048BA15a67bcEed1C6637",
+      "txHash": "0xde13ca86a8e4024e884db719d030acc791f70886eaa11b3c899111acedbf475b",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x26b9153433A38ED2B2F41E931ad99771C182A74E",
+      "txHash": "0x71968e50d50fb566731c53b79a9631ca3cbe66b84469790199d2084a1025b70e",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x455c6f84f43a0186848C78Af51d9a90aa71EF6eB",
+      "txHash": "0x0df09c3d71198f083a639c48bd271ba5898ddcbd9842fd167db427ae16183e21",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xEea22F91E0Ea54b27f82a170E8AaA580976F9069",
+      "txHash": "0x7c902d36f2855bc170506d65817d986fc83fbdbc1ae10e72b317be3f18d6f747",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x7425E028727A01e2A9656437A71B7353e8879D05",
+      "txHash": "0x61b75546b8bdb6c195a1260b41317a83d696f049555e89047c7e7893dee12244",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -250,7 +280,7 @@
           {
             "contract": "AccessControlUpgradeable",
             "label": "_roles",
-            "type": "t_mapping(t_bytes32,t_struct(RoleData)1666_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)2099_storage)",
             "src": "../@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:73"
           },
           {
@@ -286,60 +316,60 @@
           {
             "contract": "UNERC20",
             "label": "Coin",
-            "type": "t_contract(IERC20Upgradeable)3287",
-            "src": "unERC20.sol:26"
+            "type": "t_contract(IERC20Upgradeable)3720",
+            "src": "unERC20.sol:29"
           },
           {
             "contract": "UNERC20",
             "label": "tokenAddress",
             "type": "t_address",
-            "src": "unERC20.sol:27"
+            "src": "unERC20.sol:30"
           },
           {
             "contract": "UNERC20",
             "label": "factoryContract",
             "type": "t_address",
-            "src": "unERC20.sol:28"
+            "src": "unERC20.sol:31"
           },
           {
             "contract": "UNERC20",
             "label": "totalLiquidity",
             "type": "t_uint256",
-            "src": "unERC20.sol:29"
+            "src": "unERC20.sol:32"
           },
           {
             "contract": "UNERC20",
             "label": "usedLiquidity",
             "type": "t_uint256",
-            "src": "unERC20.sol:30"
+            "src": "unERC20.sol:33"
           },
           {
             "contract": "UNERC20",
             "label": "balanceSupplyCallPending",
             "type": "t_array(t_address)dyn_storage",
-            "src": "unERC20.sol:31"
+            "src": "unERC20.sol:34"
           },
           {
             "contract": "UNERC20",
             "label": "liquidityMapping",
             "type": "t_mapping(t_address,t_uint256)",
-            "src": "unERC20.sol:32"
+            "src": "unERC20.sol:35"
           },
           {
             "contract": "UNERC20",
             "label": "borrowersMapping",
             "type": "t_mapping(t_address,t_uint256)",
-            "src": "unERC20.sol:33"
+            "src": "unERC20.sol:36"
           },
           {
             "contract": "UNERC20",
             "label": "contractInteractions",
             "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
-            "src": "unERC20.sol:34"
+            "src": "unERC20.sol:37"
           }
         ],
         "types": {
-          "t_contract(IERC20Upgradeable)3287": {
+          "t_contract(IERC20Upgradeable)3720": {
             "label": "contract IERC20Upgradeable"
           },
           "t_address": {
@@ -363,13 +393,13 @@
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]"
           },
-          "t_mapping(t_bytes32,t_struct(RoleData)1666_storage)": {
+          "t_mapping(t_bytes32,t_struct(RoleData)2099_storage)": {
             "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)"
           },
           "t_bytes32": {
             "label": "bytes32"
           },
-          "t_struct(RoleData)1666_storage": {
+          "t_struct(RoleData)2099_storage": {
             "label": "struct AccessControlUpgradeable.RoleData",
             "members": [
               {

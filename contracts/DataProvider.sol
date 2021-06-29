@@ -2,6 +2,7 @@ pragma solidity >0.8.0;
 
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 import "./interfaces/IDataProvider.sol";
+import "./interfaces/IunERC20.sol";
 
 contract DataProvider is IDataProvider {
     uint256 public Ymax;
@@ -13,7 +14,7 @@ contract DataProvider is IDataProvider {
         external
         view
         override
-        returns (int256)
+        returns (uint256)
     {
         AggregatorV3Interface priceFeed =
             AggregatorV3Interface(aggregatorAddress);
@@ -24,7 +25,7 @@ contract DataProvider is IDataProvider {
             uint256 timeStamp,
             uint80 answeredInRound
         ) = priceFeed.latestRoundData();
-        return price;
+        return 0;
     }
 
     function getInterestPaidStatus(address addr, uint256 amount)
@@ -42,5 +43,22 @@ contract DataProvider is IDataProvider {
         bool status
     ) external override {
         interestPaid[addr][amount] = status;
+    }
+
+    function getValuesForInterestCalculation(IUNERC20 tokenAddress)
+        external
+        view
+        override
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        )
+    {
+        uint256 B = tokenAddress.getUsedLiquidity();
+        uint256 T = tokenAddress.getTotalLiquidity();
+
+        return (Ymax, Ymin, B, T);
     }
 }

@@ -17,11 +17,6 @@ pragma solidity >0.8.0;
 */
 
 contract Math {
-    /**
-     * @dev Compute square root of x using Newton-Raphson Method
-     * @param x
-     * @return sqrt(x)
-     */
     function sqrt(uint256 x) internal pure returns (uint256) {
         uint256 n = x / 2;
         uint256 lstX = 0;
@@ -32,11 +27,6 @@ contract Math {
         return uint256(n);
     }
 
-    /**
-     * @dev Compute modular exponential (x ** k) % m
-     * @param x k m
-     * @return uint
-     */
     function mexp(
         uint256 x,
         uint256 k,

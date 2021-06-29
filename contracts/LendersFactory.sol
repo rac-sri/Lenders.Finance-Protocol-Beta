@@ -5,6 +5,7 @@ import "./interfaces/IunERC20.sol";
 import "./UnERC20Proxy.sol";
 import "./interfaces/IDataProvider.sol";
 import "./interfaces/ILendersFactory.sol";
+import "./interfaces/IInterestRate.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -17,6 +18,7 @@ contract LendersFactory is ILendersFactory {
     address proxyImplementation;
     address tokenImplementation;
     IDataProvider dataProvider;
+    IInterestRate interestProvider;
 
     address admin;
 
@@ -25,11 +27,13 @@ contract LendersFactory is ILendersFactory {
     constructor(
         address _implementation,
         address _tokenImplementation,
-        IDataProvider _dataProvider
+        IDataProvider _dataProvider,
+        IInterestRate _interestProvider
     ) {
         proxyImplementation = _implementation;
         tokenImplementation = _tokenImplementation;
         dataProvider = _dataProvider;
+        interestProvider = _interestProvider;
         admin = msg.sender;
     }
 

@@ -1,5 +1,7 @@
 pragma solidity >0.8.0;
 
+import "./interfaces/IunERC20.sol";
+import "./interfaces/IInterestRate.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -15,7 +17,8 @@ contract UNERC20 is
     ERC20Upgradeable,
     AccessControlUpgradeable,
     UUPSUpgradeable,
-    OwnableUpgradeable
+    OwnableUpgradeable,
+    IUNERC20
 {
     using SafeMathUpgradeable for uint256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -40,7 +43,7 @@ contract UNERC20 is
         string calldata name,
         string calldata symbol,
         address admin
-    ) external initializer {
+    ) external override initializer {
         __ERC20_init(name, symbol);
         tokenAddress = _tokenAddress;
         Coin = IERC20Upgradeable(_tokenAddress);
@@ -58,6 +61,7 @@ contract UNERC20 is
 
     function increaseSupply(uint256 amount, address supplier)
         external
+        override
         onlyRole(MULTISIGADMIN)
     {
         liquidityMapping[supplier] += amount;
@@ -66,6 +70,7 @@ contract UNERC20 is
 
     function decreaseSupply(uint256 amount, address sender)
         external
+        override
         onlyRole(MULTISIGADMIN)
     {
         uint256 availaibleSupply = getAvailaibleSupply();
@@ -87,7 +92,7 @@ contract UNERC20 is
         address borrower,
         uint256 numberOfDays,
         uint256 amount
-    ) external onlyRole(MULTISIGADMIN) {
+    ) external override onlyRole(MULTISIGADMIN) {
         require(amount <= getAvailaibleSupply(), "not enough liquidity");
         require(
             balanceOf(borrower) == 0,
@@ -100,6 +105,7 @@ contract UNERC20 is
 
     function paybackLoan(uint256 amount, address account)
         external
+        override
         onlyRole(MULTISIGADMIN)
     {
         require(
@@ -116,12 +122,13 @@ contract UNERC20 is
         return totalLiquidity.sub(usedLiquidity);
     }
 
-    function getUsedLiquidity() public view returns (uint256) {
+    function getUsedLiquidity() external view override returns (uint256) {
         return usedLiquidity;
     }
 
     function balanceSupply()
         external
+        override
         onlyRole(MULTISIGADMIN)
         returns (uint256)
     {
@@ -187,7 +194,7 @@ contract UNERC20 is
         return liquidityMapping[lp];
     }
 
-    function getTotalLiquidity() public view returns (uint256) {
+    function getTotalLiquidity() external view override returns (uint256) {
         return totalLiquidity;
     }
 
