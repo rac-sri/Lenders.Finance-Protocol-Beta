@@ -18,6 +18,7 @@ interface IDataProvider {
 
     function getValuesForInterestCalculation(IUNERC20)
         external
+        view
         returns (
             uint256,
             uint256,

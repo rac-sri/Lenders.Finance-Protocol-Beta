@@ -10,6 +10,11 @@ contract DataProvider is IDataProvider {
 
     mapping(address => mapping(uint256 => bool)) interestPaid;
 
+    function initialize(uint256 ymax, uint256 ymin) public {
+        Ymax = ymax;
+        Ymin = ymin;
+    }
+
     function getThePrice(address aggregatorAddress)
         external
         view

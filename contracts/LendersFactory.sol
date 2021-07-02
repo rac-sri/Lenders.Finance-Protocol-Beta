@@ -122,26 +122,23 @@ contract LendersFactory is ILendersFactory {
         return reward;
     }
 
-    function payInterest(uint256 amount) public payable {
-        uint256 interest = calculateInterestAmount(amount);
+    function payInterest(
+        IERC20 token,
+        uint256 amount,
+        uint256 numberOfDays
+    ) public payable {
+        uint256 interest = 10;
+        // (uint256 interest, uint256 security) =
+        //     interestProvider.calculatePaymentAmount(
+        //         IUNERC20(proxyMapping[token]),
+        //         amount,
+        //         numberOfDays
+        //     );
         require(
             msg.value == interest,
             "Not the entire interest amount deposited"
         );
         dataProvider.setInterestPaidStatus(msg.sender, amount, true);
-    }
-
-    function calculateInterestAmount(uint256 amount)
-        public
-        pure
-        returns (uint256)
-    {
-        return interestPercentage().mul(amount).div(100);
-    }
-
-    function interestPercentage() public pure returns (uint256) {
-        // think of an algo based on liquidity available vs loan taken
-        return 1;
     }
 
     function returnProxyContract(IERC20 tokenAddress)

@@ -15,6 +15,8 @@ contract("Factory Contract", (accounts) => {
   let factory;
   let unERC20ProxyContract;
   let urERC20contract;
+  let interestRate;
+  let dataProvider;
 
   describe("create new liquidity contract and provide liquidity", async () => {
     before(async () => {
@@ -32,9 +34,11 @@ contract("Factory Contract", (accounts) => {
         }
       );
 
-      const interestRate = await InterestRate.new();
+      interestRate = await InterestRate.new();
 
-      const dataProvider = await DataProvider.new();
+      dataProvider = await DataProvider.new();
+
+      await dataProvider.initialize(10, 5);
 
       await interestRate.initialize(dataProvider.address, 5);
 
@@ -65,7 +69,6 @@ contract("Factory Contract", (accounts) => {
       await factory.createLiquidityContract(dai.address, "Dai", "Dai");
 
       daiAddress = await factory.returnProxyContract(dai.address);
-      console.log(factory.address, daiAddress);
 
       daiTokenWrapper = new web3.eth.Contract(unERC20.abi, daiAddress);
       const name = await daiTokenWrapper.methods.name().call();
@@ -86,10 +89,23 @@ contract("Factory Contract", (accounts) => {
       );
     });
 
-    it("Interest Calculation Functions Working", async () => {
-      assert.equal((await factory.interestPercentage()).toNumber(), 1);
-      assert.equal(await factory.calculateInterestAmount(1500), 15);
-    });
+    // it("Interest Calculation Functions Working", async () => {
+    //   const dataInput = await dataProvider.getValuesForInterestCalculation(
+    //     daiTokenWrapper._address
+    //   );
+
+    //   assert.equal(dataInput[0], 10);
+    //   assert.equal(dataInput[1], 5);
+    //   assert.equal(dataInput[2], 0);
+    //   assert.equal(dataInput[3].toNumber(), 4000);
+    //   const data = await interestRate.calculatePaymentAmount(
+    //     unERC20ProxyContract.address,
+    //     1500,
+    //     1
+    //   );
+    //   console.log(data[0].toNumber(), data[1].toNumber());
+    //   assert.equal(data[1], 75);
+    // });
 
     it("account[2] issues a loan", async () => {
       await dai.transfer(accounts[2], 2000);
