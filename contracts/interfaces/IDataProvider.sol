@@ -25,4 +25,30 @@ interface IDataProvider {
             uint256,
             uint256
         );
+
+    function getContractAddress(IERC20 token) external view returns (address);
+
+    function addContract(
+        address token,
+        string calldata name,
+        string calldata symbol
+    ) external;
+
+    function updateStatusIssueLoan(
+        address addrUser,
+        address contractAddr,
+        uint256 amount
+    ) external;
+
+    function updateStatusLiquidityIncr(
+        address addrUser,
+        address contractAddr,
+        uint256 amount
+    ) external;
+
+    function updateStatusLiquidityDecr(
+        address addrUser,
+        address contractAddr,
+        uint256 amount
+    ) external;
 }

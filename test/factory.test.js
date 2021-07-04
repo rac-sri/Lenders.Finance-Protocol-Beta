@@ -38,8 +38,6 @@ contract("Factory Contract", (accounts) => {
 
       dataProvider = await DataProvider.new();
 
-      await dataProvider.initialize(10, 5);
-
       await interestRate.initialize(dataProvider.address, 5);
 
       factory = await Factory.new(
@@ -51,6 +49,7 @@ contract("Factory Contract", (accounts) => {
           from: accounts[0],
         }
       );
+      await dataProvider.initialize(10, 5, factory.address);
     });
 
     it("implementation contract is correct", async () => {
@@ -68,7 +67,7 @@ contract("Factory Contract", (accounts) => {
     it("create a new token wrapper contract", async () => {
       await factory.createLiquidityContract(dai.address, "Dai", "Dai");
 
-      daiAddress = await factory.returnProxyContract(dai.address);
+      daiAddress = await factory.getContractAddress(dai.address);
 
       daiTokenWrapper = new web3.eth.Contract(unERC20.abi, daiAddress);
       const name = await daiTokenWrapper.methods.name().call();
@@ -89,15 +88,31 @@ contract("Factory Contract", (accounts) => {
       );
     });
 
-    // it("Interest Calculation Functions Working", async () => {
-    //   const dataInput = await dataProvider.getValuesForInterestCalculation(
-    //     daiTokenWrapper._address
-    //   );
+    it("withdraw liquidity", async () => {
+      await factory.withdrawLiquidity(200, dai.address, { from: accounts[0] });
+      assert.equal(
+        await daiTokenWrapper.methods.getTotalLiquidity().call(),
+        3800
+      );
+      await factory.addLiquidity(200, dai.address);
+      assert.equal(
+        await daiTokenWrapper.methods.getTotalLiquidity().call(),
+        4000
+      );
+    });
 
-    //   assert.equal(dataInput[0], 10);
-    //   assert.equal(dataInput[1], 5);
-    //   assert.equal(dataInput[2], 0);
-    //   assert.equal(dataInput[3].toNumber(), 4000);
+    it("DataProvider tests", async () => {
+      const dataInput = await dataProvider.getValuesForInterestCalculation(
+        daiAddress
+      );
+
+      assert.equal(dataInput[0], 10);
+      assert.equal(dataInput[1], 5);
+      assert.equal(dataInput[2], 0);
+      assert.equal(dataInput[3], 4000);
+    });
+
+    // it("Interest Calculation Functions Working", async () => {
     //   const data = await interestRate.calculatePaymentAmount(
     //     unERC20ProxyContract.address,
     //     1500,
@@ -107,12 +122,29 @@ contract("Factory Contract", (accounts) => {
     //   assert.equal(data[1], 75);
     // });
 
+    it("interest calculation functions ( y/x approach )", async () => {
+      const data = await interestRate.calculatePaymentAmount(
+        dai.address,
+        1500,
+        1
+      );
+
+      assert.equal(data[0], 5);
+      assert.equal(data[1], 75);
+
+      const proxyC = await dataProvider.getContractAddress(dai.address);
+      assert.equal(proxyC, daiAddress);
+    });
+
     it("account[2] issues a loan", async () => {
       await dai.transfer(accounts[2], 2000);
 
       assert.equal(await dai.balanceOf(accounts[2]), 2000);
 
-      await factory.payInterest(1500, { value: 15, from: accounts[2] });
+      await factory.payInterest(dai.address, 1500, 1, {
+        value: 80, // calculated abovetruffl
+        from: accounts[2],
+      });
 
       await factory.issueLoan(dai.address, 1, 1500, { from: accounts[2] });
 
@@ -135,6 +167,7 @@ contract("Factory Contract", (accounts) => {
     it("balanceSupply() test", async () => {
       assert(await factory.balanceSupply.call(dai.address), 500);
     });
+
     // transfer events test
   });
 });

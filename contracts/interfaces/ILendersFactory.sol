@@ -20,4 +20,9 @@ interface ILendersFactory {
         uint256 numberOfDays,
         uint256 amount
     ) external;
+
+    function returnProxyContract(IERC20 tokenAddress)
+        external
+        view
+        returns (address);
 }

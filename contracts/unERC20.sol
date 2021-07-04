@@ -118,14 +118,6 @@ contract UNERC20 is
         _burn(account, amount);
     }
 
-    function getAvailaibleSupply() public view returns (uint256) {
-        return totalLiquidity.sub(usedLiquidity);
-    }
-
-    function getUsedLiquidity() external view override returns (uint256) {
-        return usedLiquidity;
-    }
-
     function balanceSupply()
         external
         override
@@ -196,6 +188,14 @@ contract UNERC20 is
 
     function getTotalLiquidity() external view override returns (uint256) {
         return totalLiquidity;
+    }
+
+    function getAvailaibleSupply() public view returns (uint256) {
+        return totalLiquidity.sub(usedLiquidity);
+    }
+
+    function getUsedLiquidity() external view override returns (uint256) {
+        return usedLiquidity;
     }
 
     function getBorrowerDetails(address borrower)

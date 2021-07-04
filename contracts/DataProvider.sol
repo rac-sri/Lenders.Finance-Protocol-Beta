@@ -2,6 +2,7 @@ pragma solidity >0.8.0;
 
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 import "./interfaces/IDataProvider.sol";
+import "./interfaces/ILendersFactory.sol";
 import "./interfaces/IunERC20.sol";
 
 contract DataProvider is IDataProvider {
@@ -10,9 +11,66 @@ contract DataProvider is IDataProvider {
 
     mapping(address => mapping(uint256 => bool)) interestPaid;
 
-    function initialize(uint256 ymax, uint256 ymin) public {
+    struct Contract {
+        address addr;
+        string name;
+        string symbol;
+    }
+
+    struct ContractDetails {
+        uint256 liquiidtyAmount;
+        uint256 borrowedAmount;
+    }
+
+    Contract[] contractList;
+    mapping(address => mapping(address => ContractDetails)) userMapping;
+
+    ILendersFactory core;
+
+    function initialize(
+        uint256 ymax,
+        uint256 ymin,
+        ILendersFactory _core
+    ) public {
         Ymax = ymax;
         Ymin = ymin;
+        core = _core;
+    }
+
+    function getUserDetailForGivenContract(address user, address contractAddr)
+        public
+        view
+        returns (ContractDetails memory)
+    {
+        return userMapping[user][contractAddr];
+    }
+
+    // restict access
+    function updateStatusIssueLoan(
+        address addrUser,
+        address contractAddr,
+        uint256 amount
+    ) external override {
+        ContractDetails storage user = userMapping[addrUser][contractAddr];
+        user.borrowedAmount = amount;
+    }
+
+    function updateStatusLiquidityIncr(
+        address addrUser,
+        address contractAddr,
+        uint256 amount
+    ) external override {
+        ContractDetails storage user = userMapping[addrUser][contractAddr];
+        user.liquiidtyAmount += amount;
+    }
+
+    function updateStatusLiquidityDecr(
+        address addrUser,
+        address contractAddr,
+        uint256 amount
+    ) external override {
+        ContractDetails storage user = userMapping[addrUser][contractAddr];
+        user.liquiidtyAmount -= amount;
     }
 
     function getThePrice(address aggregatorAddress)
@@ -65,5 +123,45 @@ contract DataProvider is IDataProvider {
         uint256 T = tokenAddress.getTotalLiquidity();
 
         return (Ymax, Ymin, B, T);
+    }
+
+    function getContractAddress(IERC20 token)
+        external
+        view
+        override
+        returns (address)
+    {
+        address proxy = core.returnProxyContract(token);
+        return proxy;
+    }
+
+    function addContract(
+        address token,
+        string calldata name,
+        string calldata symbol
+    ) external override {
+        contractList.push(Contract(token, name, symbol));
+    }
+
+    function getContracts() external view returns (Contract[] memory) {
+        return contractList;
+    }
+
+    function returnProxy(IERC20 token) public view returns (address) {
+        return core.returnProxyContract(token);
+    }
+
+    function getUsedLiquidity(IERC20 token) external view returns (uint256) {
+        address proxyAdd = returnProxy(token);
+        require(proxyAdd != address(0), "No token created");
+        IUNERC20 proxy = IUNERC20(proxyAdd);
+        return proxy.getUsedLiquidity();
+    }
+
+    function getTotalLiquidity(IERC20 token) external view returns (uint256) {
+        address proxyAdd = returnProxy(token);
+        require(proxyAdd != address(0), "No token created");
+        IUNERC20 proxy = IUNERC20(proxyAdd);
+        return proxy.getTotalLiquidity();
     }
 }

@@ -1,5 +1,5 @@
 const HDWalletProvider = require("@truffle/hdwallet-provider")
-require("dotenv").config()
+
 module.exports = {
   networks: {
     development: {
@@ -20,6 +20,16 @@ module.exports = {
           `https://ropsten.infura.io/v3/${process.env.infuraKey}`
         ),
       network_id: 3, // Ropsten's id
+    },
+
+    rinkeby: {
+      provider: () => {
+        return new HDWalletProvider(
+          process.env.mnemonic,
+          `https://rinkeby.infura.io/v3/${process.env.infuraKey}`
+        )
+      },
+      network_id: 4, // Ropsten's id
     },
 
     // Useful for private networks

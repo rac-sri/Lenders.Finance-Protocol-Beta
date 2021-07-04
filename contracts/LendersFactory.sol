@@ -44,6 +44,7 @@ contract LendersFactory is ILendersFactory {
         string calldata name,
         string calldata symbol
     ) external override {
+        require(proxyMapping[IERC20(token)] == address(0), "already created");
         address payable proxyContractToken =
             payable(Clones.clone(proxyImplementation));
         UnERC20Proxy initializing = UnERC20Proxy(proxyContractToken);
@@ -52,6 +53,8 @@ contract LendersFactory is ILendersFactory {
 
         IUNERC20 unERC20 = IUNERC20(proxyContractToken);
         unERC20.initialize(token, name, symbol, admin);
+
+        dataProvider.addContract(token, name, symbol);
 
         proxyMapping[IERC20(token)] = proxyContractToken;
     }
@@ -66,6 +69,11 @@ contract LendersFactory is ILendersFactory {
         token.transferFrom(msg.sender, implementation, amount);
         IUNERC20 implementationContract = IUNERC20(implementation);
         implementationContract.increaseSupply(amount, msg.sender);
+        dataProvider.updateStatusLiquidityIncr(
+            msg.sender,
+            address(token),
+            amount
+        );
 
         //    // gas inefficient
         //     implementation.call(
@@ -87,12 +95,13 @@ contract LendersFactory is ILendersFactory {
 
         IUNERC20 liquidityContract = IUNERC20(getContractAddress(token));
 
-        liquidityContract.decreaseSupply(amount, msg.sender);
-    }
+        dataProvider.updateStatusLiquidityDecr(
+            msg.sender,
+            address(token),
+            amount
+        );
 
-    function getContractAddress(IERC20 token) public view returns (address) {
-        address payable tokenAddress = payable(proxyMapping[token]);
-        return tokenAddress;
+        liquidityContract.decreaseSupply(amount, msg.sender);
     }
 
     function issueLoan(
@@ -106,6 +115,7 @@ contract LendersFactory is ILendersFactory {
             "Interest Not Paid"
         );
         liquidityContract.getLoan(msg.sender, numberOfDays, amount);
+        dataProvider.updateStatusIssueLoan(msg.sender, address(token), amount);
         dataProvider.setInterestPaidStatus(msg.sender, amount, false);
     }
 
@@ -127,25 +137,32 @@ contract LendersFactory is ILendersFactory {
         uint256 amount,
         uint256 numberOfDays
     ) public payable {
-        uint256 interest = 10;
-        // (uint256 interest, uint256 security) =
-        //     interestProvider.calculatePaymentAmount(
-        //         IUNERC20(proxyMapping[token]),
-        //         amount,
-        //         numberOfDays
-        //     );
+        (uint256 interest, uint256 security) =
+            interestProvider.calculatePaymentAmount(
+                token,
+                amount,
+                numberOfDays
+            );
         require(
-            msg.value == interest,
+            msg.value == interest + security,
             "Not the entire interest amount deposited"
         );
         dataProvider.setInterestPaidStatus(msg.sender, amount, true);
     }
 
-    function returnProxyContract(IERC20 tokenAddress)
-        public
+    function getContractAddress(IERC20 token) public view returns (address) {
+        address payable tokenAddress = payable(proxyMapping[token]);
+        return tokenAddress;
+    }
+
+    // migrate usage in data provider to abiEnocdeWIthSignature and remove this repitive function
+    function returnProxyContract(IERC20 token)
+        external
         view
+        override
         returns (address)
     {
-        return proxyMapping[tokenAddress];
+        address payable tokenAddress = payable(proxyMapping[token]);
+        return tokenAddress;
     }
 }

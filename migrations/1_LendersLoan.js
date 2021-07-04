@@ -13,7 +13,9 @@ module.exports = async function (deployer) {
       .deploy(ProxyContract, result.address, "0x")
       .then((proxy) => {
         return deployer.deploy(DataProvider).then((dp) => {
-          return deployer.deploy(InterestProvider).then((it) => {
+          return deployer.deploy(InterestProvider).then(async (it) => {
+            const itInstance = await InterestProvider.deployed()
+            await itInstance.initialize(dp.address, 5)
             return deployer
               .deploy(
                 LendersFactory,
@@ -22,7 +24,10 @@ module.exports = async function (deployer) {
                 dp.address,
                 it.address
               )
-              .then((res) => console.log(res.address))
+              .then(async (res) => {
+                const DataProviderInstance = await DataProvider.deployed()
+                await DataProviderInstance.initialize(10, 5, res.address)
+              })
           })
         })
       })
