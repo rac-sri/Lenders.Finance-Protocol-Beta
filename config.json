@@ -1,6 +1,6 @@
 {
-  "targetERC20": "0x6b175474e89094c44da98b954eedeac495271d0f",
+  "targetERC20": "0xad6d458402f60fd3bd25163575031acdce07538d",
   "name": "DAI",
   "symbol": "DAI",
-  "admin": "0x4d9A8044C15aB061A33aF9B48CBaa7888Fa1F7F6"
+  "admin": "0x06fd9d0Ae9052A85989D0A30c60fB11753537f9A"
 }

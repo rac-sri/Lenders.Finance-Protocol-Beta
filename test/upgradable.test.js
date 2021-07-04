@@ -10,17 +10,17 @@ chai.use(chaiAsPromised);
 
 contract("Wrapper", (accounts) => {
   describe("upgrade", () => {
-    it("Deploy 1 contract, then migrate using proxy to another deployment", async () => {
-      const dai = await Dai.new(10000);
-      const w1 = await deployProxy(Wrapper, [
-        dai.address,
-        "Dai",
-        "DAI",
-        accounts[0],
-      ]);
-      const w2 = await upgradeProxy(w1.address, Wrapper2);
-      const state = await w2.MULTISIGADMIN();
-      assert(await w2.hasRole(state, accounts[0]));
-    });
+    // it("Deploy 1 contract, then migrate using proxy to another deployment", async () => {
+    //   const dai = await Dai.new(10000);
+    //   const w1 = await deployProxy(Wrapper, [
+    //     dai.address,
+    //     "Dai",
+    //     "DAI",
+    //     accounts[0],
+    //   ]);
+    //   const w2 = await upgradeProxy(w1.address, Wrapper2);
+    //   const state = await w2.MULTISIGADMIN();
+    //   assert(await w2.hasRole(state, accounts[0]));
+    // });
   });
 });

@@ -14,9 +14,7 @@
     "debug:tx": "truffle debug",
     "prettier": "prettier --write 'contracts/**/*.sol'",
     "lint": "npm prettier --check && solhint 'contracts/**/*.sol",
-    "log": "changelog generate",
-    "compile": "truffle compile",
-    "migrate": " truffle migrate"
+    "log": "changelog generate"
   },
   "repository": {
     "type": "git",
@@ -35,6 +33,7 @@
   },
   "homepage": "https://github.com/Insureably/Protocol#readme",
   "dependencies": {
+    "@chainlink/contracts": "^0.1.9",
     "@openzeppelin/contracts": "^4.1.0",
     "@openzeppelin/contracts-upgradeable": "^4.1.0",
     "@truffle/hdwallet-provider": "^1.4.0",
@@ -42,7 +41,7 @@
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.1.0",
     "solidity-coverage": "^0.7.16",
-    "truffle": "^5.3.7"
+    "truffle": "^5.2.6"
   },
   "devDependencies": {
     "@codechecks/client": "^0.1.10",

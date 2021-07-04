@@ -5,6 +5,8 @@ const Dai = artifacts.require("Dai");
 const Factory = artifacts.require("LendersFactory");
 const unERC20Proxy = artifacts.require("UnERC20Proxy");
 const unERC20 = artifacts.require("UNERC20");
+const DataProvider = artifacts.require("DataProvider");
+const InterestRate = artifacts.require("InterestRateStatergy");
 
 chai.use(chaiAsPromised);
 
@@ -13,6 +15,8 @@ contract("Factory Contract", (accounts) => {
   let factory;
   let unERC20ProxyContract;
   let urERC20contract;
+  let interestRate;
+  let dataProvider;
 
   describe("create new liquidity contract and provide liquidity", async () => {
     before(async () => {
@@ -30,13 +34,22 @@ contract("Factory Contract", (accounts) => {
         }
       );
 
+      interestRate = await InterestRate.new();
+
+      dataProvider = await DataProvider.new();
+
+      await interestRate.initialize(dataProvider.address, 5);
+
       factory = await Factory.new(
         unERC20ProxyContract.address,
         urERC20contract.address,
+        dataProvider.address,
+        interestRate.address,
         {
           from: accounts[0],
         }
       );
+      await dataProvider.initialize(10, 5, factory.address);
     });
 
     it("implementation contract is correct", async () => {
@@ -49,28 +62,16 @@ contract("Factory Contract", (accounts) => {
 
   describe("Liquidity Contract", async () => {
     let daiTokenWrapper;
-    let daiImplementationAddress;
+    let daiAddress;
 
     it("create a new token wrapper contract", async () => {
       await factory.createLiquidityContract(dai.address, "Dai", "Dai");
 
-      const daiAddress = await factory.returnProxyContract(dai.address);
+      daiAddress = await factory.getContractAddress(dai.address);
 
-      const unerc20implementation = new web3.eth.Contract(
-        unERC20Proxy.abi,
-        daiAddress
-      );
-
-      daiImplementationAddress = await unerc20implementation.methods
-        .getImplementation()
-        .call();
-
-      daiTokenWrapper = new web3.eth.Contract(
-        unERC20.abi,
-        daiImplementationAddress
-      );
-
-      assert.equal(await daiTokenWrapper.methods.name().call(), "Dai");
+      daiTokenWrapper = new web3.eth.Contract(unERC20.abi, daiAddress);
+      const name = await daiTokenWrapper.methods.name().call();
+      assert.equal(name, "Dai");
     });
 
     it("adding liquidity", async () => {
@@ -79,7 +80,7 @@ contract("Factory Contract", (accounts) => {
       assert.equal(await dai.allowance(accounts[0], factory.address), 5000);
 
       await factory.addLiquidity(4000, dai.address);
-      assert.equal(await dai.balanceOf(daiImplementationAddress), 4000);
+      assert.equal(await dai.balanceOf(daiAddress), 4000);
 
       assert.equal(
         await daiTokenWrapper.methods.getTotalLiquidity().call(),
@@ -87,9 +88,52 @@ contract("Factory Contract", (accounts) => {
       );
     });
 
-    it("Interest Calculation Functions Working", async () => {
-      assert.equal((await factory.interestPercentage()).toNumber(), 1);
-      assert.equal(await factory.calculateInterestAmount(1500), 15);
+    it("withdraw liquidity", async () => {
+      await factory.withdrawLiquidity(200, dai.address, { from: accounts[0] });
+      assert.equal(
+        await daiTokenWrapper.methods.getTotalLiquidity().call(),
+        3800
+      );
+      await factory.addLiquidity(200, dai.address);
+      assert.equal(
+        await daiTokenWrapper.methods.getTotalLiquidity().call(),
+        4000
+      );
+    });
+
+    it("DataProvider tests", async () => {
+      const dataInput = await dataProvider.getValuesForInterestCalculation(
+        daiAddress
+      );
+
+      assert.equal(dataInput[0], 10);
+      assert.equal(dataInput[1], 5);
+      assert.equal(dataInput[2], 0);
+      assert.equal(dataInput[3], 4000);
+    });
+
+    // it("Interest Calculation Functions Working", async () => {
+    //   const data = await interestRate.calculatePaymentAmount(
+    //     unERC20ProxyContract.address,
+    //     1500,
+    //     1
+    //   );
+    //   console.log(data[0].toNumber(), data[1].toNumber());
+    //   assert.equal(data[1], 75);
+    // });
+
+    it("interest calculation functions ( y/x approach )", async () => {
+      const data = await interestRate.calculatePaymentAmount(
+        dai.address,
+        1500,
+        1
+      );
+
+      assert.equal(data[0], 5);
+      assert.equal(data[1], 75);
+
+      const proxyC = await dataProvider.getContractAddress(dai.address);
+      assert.equal(proxyC, daiAddress);
     });
 
     it("account[2] issues a loan", async () => {
@@ -97,7 +141,10 @@ contract("Factory Contract", (accounts) => {
 
       assert.equal(await dai.balanceOf(accounts[2]), 2000);
 
-      await factory.payInterest(1500, { value: 15, from: accounts[2] });
+      await factory.payInterest(dai.address, 1500, 1, {
+        value: 80, // calculated abovetruffl
+        from: accounts[2],
+      });
 
       await factory.issueLoan(dai.address, 1, 1500, { from: accounts[2] });
 
