@@ -56,4 +56,5 @@ The following are yet to be implemenated. These are features to be included in s
  - Fix the interest rate model mathmetical model. Disparancy are arriving. Current implementation relies on Way based calculations, inspired by Aave.
  - Building a JS SDK + Solidity Interface for developers to build there apps upon this, for expand the ecosystem vision of the project.
  - Testing and deploying chainlink integration in ```InterestRateStatergy``` contract, to calculate equivalent Eth value for any erc20 token. Current MVP does not uses the oracle price fees, hence the numbers would work if the underlying asset is WETH. 
+ - Fix Pipeline
  - More Research and Development  ( points based priority for borrowers and financial advantages for eg. ).
