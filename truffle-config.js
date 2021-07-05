@@ -31,6 +31,7 @@ module.exports = {
         )
       },
       network_id: 4, // rinkeby's id
+      skipDryRun: true,
     },
 
     matic: {

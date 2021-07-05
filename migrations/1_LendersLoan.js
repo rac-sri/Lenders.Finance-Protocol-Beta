@@ -9,9 +9,12 @@ const ERC20 = artifacts.require("Dai")
 
 // , dai.address, "Dai", "dai", admin
 
-module.exports = async function (deployer) {
+module.exports = async function (deployer, network, accounts) {
+  console.log(accounts)
   deployer.deploy(ERC20, 10000).then(async (dai) => {
-    return deployer.deploy(UNERC20).then((result) => {
+    return deployer.deploy(UNERC20).then(async (result) => {
+      const unerc20Contract = await UNERC20.deployed()
+      await unerc20Contract.initialize(dai.address, "Dai", "Dai", accounts[0])
       return deployer
         .deploy(ProxyContract, result.address, "0x")
         .then((proxy) => {
