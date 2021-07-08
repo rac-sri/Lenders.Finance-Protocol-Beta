@@ -1,6 +1,9 @@
 # Protocol
 
+[Video](https://youtu.be/GhJxMFq-HFw)
+
 ## Architecture
+
 
 ![](protocol.png)
 
